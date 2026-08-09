@@ -248,9 +248,9 @@
         `http://127.0.0.1:4176/sidepanel.html?screen=${encodeURIComponent(params.get("screen") || "trace")}`;
       if (params.get("screen") === "settings") {
         document.querySelector("#headline").textContent =
-          "Local by default. Contribution by choice.";
+          "One clear privacy setting.";
         document.querySelector("#seed").textContent =
-          "The query trace stays in Chrome unless you enable the separate contribution control.";
+          "Accept privacy to reveal the query trace and enable fan-out estimates.";
         document.querySelector("#caption").textContent =
           "Queries, not conversations";
       }

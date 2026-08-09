@@ -1,7 +1,7 @@
 import {
-  DeleteDonationsV1Schema,
-  DonationEventV1Schema,
+  DeleteQueryDataV1Schema,
   FanOutRequestV2Schema,
+  QueryEventUploadV1Schema,
   type FanOutResponseV2,
 } from "@openqueries/contracts";
 import { querySafety, sha256Hex } from "@openqueries/query-core";
@@ -64,12 +64,12 @@ function addMonths(iso: string, months: number): string {
   return date.toISOString();
 }
 
-async function ingestEvents(request: Request, env: AppEnv): Promise<Response> {
-  const parsed = DonationEventV1Schema.safeParse(
+async function storeEvent(request: Request, env: AppEnv): Promise<Response> {
+  const parsed = QueryEventUploadV1Schema.safeParse(
     await request.json().catch(() => null),
   );
   if (!parsed.success)
-    return errorResponse(request, env, 400, "Invalid donation payload");
+    return errorResponse(request, env, 400, "Invalid query event payload");
   const event = parsed.data.event;
   const safety = querySafety(event.query);
   if (!safety.safe)
@@ -77,7 +77,7 @@ async function ingestEvents(request: Request, env: AppEnv): Promise<Response> {
       request,
       env,
       422,
-      "Query is not eligible for donation",
+      "Query is not eligible for transfer",
     );
   const receivedAt = new Date().toISOString();
   const result = await env.DB.prepare(
@@ -105,7 +105,7 @@ async function ingestEvents(request: Request, env: AppEnv): Promise<Response> {
     .run();
   console.log(
     JSON.stringify({
-      event: "donation_stored",
+      event: "query_event_stored",
       eventId: event.eventId,
       inserted: (result.meta.changes ?? 0) > 0,
     }),
@@ -240,11 +240,11 @@ async function fanOuts(request: Request, env: AppEnv): Promise<Response> {
   }
 }
 
-async function deleteDonationEvents(
+async function deleteQueryData(
   request: Request,
   env: AppEnv,
 ): Promise<Response> {
-  const parsed = DeleteDonationsV1Schema.safeParse(
+  const parsed = DeleteQueryDataV1Schema.safeParse(
     await request.json().catch(() => null),
   );
   if (!parsed.success)
@@ -283,11 +283,14 @@ export async function handleApi(
       headers: corsHeaders(request, env),
     });
   if (url.pathname === "/api/v1/events" && request.method === "POST")
-    return ingestEvents(request, env);
+    return storeEvent(request, env);
   if (url.pathname === "/api/v2/fan-outs" && request.method === "POST")
     return fanOuts(request, env);
+  if (url.pathname === "/api/v1/query-data" && request.method === "DELETE")
+    return deleteQueryData(request, env);
+  // Compatibility for the already-submitted 1.0.1 package.
   if (url.pathname === "/api/v1/donations" && request.method === "DELETE")
-    return deleteDonationEvents(request, env);
+    return deleteQueryData(request, env);
   return errorResponse(request, env, 404, "API route not found");
 }
 

@@ -50,7 +50,7 @@ export const topicPages: TopicPage[] = [
         bullets: [
           "Inspect individual surfaced queries locally.",
           "Keep observed and estimated evidence visually separate.",
-          "Contribute privacy-checked observations only if you opt in.",
+          "Accept privacy before any eligible observation is sent.",
         ],
       },
     ],
@@ -92,7 +92,7 @@ export const topicPages: TopicPage[] = [
       {
         heading: "Local history and open aggregation",
         paragraphs: [
-          "Local capture is the installed product. Contributing safe observed queries to the open history starts off; enabling it unlocks fan-out estimates. Estimated fan-outs are never counted as observed demand.",
+          "Privacy starts unaccepted. Accepting it reveals the query trace, sends every eligible observed query and unlocks fan-out estimates. Estimated fan-outs are never counted as observed demand.",
         ],
       },
     ],

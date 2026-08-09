@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  DonationEventV1Schema,
+  QueryEventUploadV1Schema,
   FanOutRequestV2Schema,
   FanOutResponseV2Schema,
   QueryObservationV1Schema,
@@ -25,7 +25,7 @@ test("accepts the narrow query observation contract", () => {
     observation.query,
   );
   assert.equal(
-    DonationEventV1Schema.parse({
+    QueryEventUploadV1Schema.parse({
       schemaVersion: 1,
       donorTag: "a".repeat(64),
       event: observation,

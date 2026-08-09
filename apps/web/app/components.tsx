@@ -112,7 +112,7 @@ export function QueryInterface() {
           <strong>Open Queries</strong>
         </div>
         <small>
-          <i /> Local only
+          <i /> Privacy accepted
         </small>
       </div>
       <div className="interface-title">

@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   createInitialState,
   pruneEvents,
-  reconcileContributionState,
+  readState,
   rotateDonor,
 } from "../lib/storage";
 import type { ExtensionState, LocalQueryEvent } from "../lib/types";
@@ -65,14 +65,13 @@ test("deduplicates the same rendered provider query after a page reload", () => 
   );
 });
 
-test("starts query contribution off until the user chooses it", async () => {
+test("starts with privacy not accepted", async () => {
   const state = await createInitialState();
-  assert.equal(state.donationEnabled, false);
-  assert.equal(state.onboardingAcknowledged, false);
+  assert.equal(state.privacyAccepted, false);
 });
 
-test("repairs the legacy enabled-but-unacknowledged contribution state", () => {
-  const state: ExtensionState = {
+test("migrates the legacy two-flag state to one privacy flag", async () => {
+  const legacy = {
     schemaVersion: 1,
     donationEnabled: true,
     onboardingAcknowledged: false,
@@ -80,16 +79,28 @@ test("repairs the legacy enabled-but-unacknowledged contribution state", () => {
     donorTag: "b".repeat(64),
     events: [],
   };
-  const reconciled = reconcileContributionState(state);
-  assert.equal(reconciled.donationEnabled, true);
-  assert.equal(reconciled.onboardingAcknowledged, true);
+  let written: Record<string, unknown> | undefined;
+  globalThis.chrome = {
+    storage: {
+      local: {
+        get: async () => ({ "openqueries:state:v1": legacy }),
+        set: async (value: Record<string, unknown>) => {
+          written = value;
+        },
+      },
+    },
+  } as typeof chrome;
+  const migrated = await readState();
+  assert.equal(migrated.privacyAccepted, true);
+  assert.ok(written);
+  assert.equal("donationEnabled" in migrated, false);
+  assert.equal("onboardingAcknowledged" in migrated, false);
 });
 
-test("server deletion rotates the donor without re-donating existing local history", async () => {
+test("server deletion rotates the installation ID without resending local history", async () => {
   const state: ExtensionState = {
     schemaVersion: 1,
-    donationEnabled: true,
-    onboardingAcknowledged: true,
+    privacyAccepted: true,
     deletionSecret: "a".repeat(64),
     donorTag: "b".repeat(64),
     events: [event("existing-event", new Date().toISOString())],

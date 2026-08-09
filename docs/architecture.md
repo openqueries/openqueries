@@ -6,8 +6,8 @@ Open Queries is one monorepo with four trust boundaries:
 Provider search-tool signal
   -> fail-closed, provider-specific Plasmo adapter
   -> Chrome side panel + 30-day local history
-       -> every eligible observation while contribution is enabled -> D1 raw events
-       -> contribution enabled + explicit fan-out request -> Cloudflare Worker
+       -> every eligible observation after privacy acceptance -> D1 raw events
+       -> privacy accepted + explicit fan-out request -> Cloudflare Worker
             -> ChatGPT: gpt-5.6-luna structured output + native token logprobs
             -> Google: gemini-3.1-flash-lite, 16 native samples + Wilson interval
             -> Claude: claude-haiku-4-5, 16 native samples + Wilson interval
@@ -29,11 +29,12 @@ adapter clones only ChatGPT conversation transport responses, walks only
 explicit search-metadata/tool fields and posts query strings to the isolated
 extension context. Ordinary `query` fields and message content are rejected and
 never cross that boundary. Claude and Google adapters read explicit search UI.
-All capture and history processing happens locally while contribution is off.
-Enabling query contribution permits safe observed-query donations and unlocks
-explicit, user-requested fan-out estimation.
+All capture and history processing happens locally while privacy is unaccepted,
+but Current and History display no query data. Accepting privacy sends every
+eligible observed query and unlocks the trace plus explicit, user-requested
+fan-out estimation.
 
-Sensitive-pattern checks run before donation and again at the Worker. Unsafe
+Sensitive-pattern checks run before transfer and again at the Worker. Unsafe
 queries stay local and cannot be sent for fan-out estimation. Old local V1
 estimates are discarded during state hydration rather than displayed under the
 new evidence contract.
@@ -65,10 +66,10 @@ The Worker exposes three product endpoints:
 
 - `POST /api/v1/events`
 - `POST /api/v2/fan-outs`
-- `DELETE /api/v1/donations`
+- `DELETE /api/v1/query-data`
 
 Anonymous fan-out calls are limited to ten per donor tag per UTC day and five
-per source IP per minute. Donations are validated and written directly to D1.
+per source IP per minute. Query events are validated and written directly to D1.
 Deletion removes the installation's raw events and quota rows directly.
 
 ## Retention

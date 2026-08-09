@@ -140,11 +140,11 @@ export default function MethodologyPage() {
           values as demand percentages.
         </p>
         <p>
-          Query contribution starts off and is controllable during onboarding
-          and in Settings. While enabled, every eligible observed query is
-          automatically contributed, whether or not its fan-outs are requested.
-          Fan-out estimation is available only while that contribution is
-          enabled. Raw events expire after 13 months. Estimated fan-outs are
+          Privacy starts unaccepted and is controllable during onboarding and in
+          Settings. Once accepted, every eligible observed query is
+          automatically sent, whether or not its fan-outs are requested. The
+          query trace and fan-out estimation are visible only while privacy is
+          accepted. Raw events expire after 13 months. Estimated fan-outs are
           returned to the extension and never stored as observed queries.
         </p>
       </section>

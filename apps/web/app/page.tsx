@@ -30,7 +30,7 @@ const capabilities = [
   {
     icon: Sigma,
     title: "Estimate with native evidence",
-    copy: "Enable query contribution, then request plausible fan-outs ranked by each provider’s own token probabilities—or repeated native samples when logprobs are unavailable.",
+    copy: "Accept the privacy setting, then request plausible fan-outs ranked by each provider’s own token probabilities—or repeated native samples when logprobs are unavailable.",
   },
   {
     icon: Code2,
@@ -78,8 +78,8 @@ export default function HomePage() {
           <p className="hero-deck">
             Open Queries shows the web-search queries surfaced by ChatGPT,
             Claude and Google AI Overviews in a local Chrome side panel—and
-            unlocks on-demand fan-out estimates after you enable query
-            contribution.
+            unlocks the query trace and on-demand fan-out estimates after you
+            accept the privacy setting.
           </p>
           <div className="hero-actions">
             <Link className="button primary" href="/install">
@@ -155,7 +155,7 @@ export default function HomePage() {
         <ul>
           {[
             "No chat messages, titles, account identity or conversation URLs",
-            "Query contribution starts off; enabling it unlocks fan-out estimates",
+            "Privacy starts unaccepted; accepting it reveals queries and unlocks fan-out estimates",
             "Sensitive-pattern filtering runs locally and at the Worker edge",
             "Eligible observed queries are written directly to D1",
             "Estimated fan-outs are never stored as observed queries",
@@ -195,7 +195,7 @@ export default function HomePage() {
         <div>
           <p className="eyebrow">Make AI search transparent</p>
           <h2>Build the query history AI search is missing.</h2>
-          <p>Install, inspect and contribute. Every layer stays open.</p>
+          <p>Install, accept privacy and inspect. Every layer stays open.</p>
         </div>
         <Link className="button light" href="/install">
           <BrandIcon icon={siGooglechrome} size={17} />

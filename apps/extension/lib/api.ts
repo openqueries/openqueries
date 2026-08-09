@@ -1,5 +1,5 @@
 import type {
-  DonationEventV1,
+  QueryEventUploadV1,
   FanOutRequestV2,
   FanOutResponseV2,
   QueryObservationV1,
@@ -125,11 +125,11 @@ async function apiFetch(path: string, init: RequestInit): Promise<Response> {
   return response;
 }
 
-export async function donateEvent(
+export async function sendEvent(
   donorTag: string,
   event: QueryObservationV1,
 ): Promise<void> {
-  const body: DonationEventV1 = { schemaVersion: 1, donorTag, event };
+  const body: QueryEventUploadV1 = { schemaVersion: 1, donorTag, event };
   await apiFetch("/api/v1/events", {
     method: "POST",
     body: JSON.stringify(body),
@@ -144,8 +144,8 @@ export async function estimateFanOuts(request: FanOutRequestV2) {
   return parseFanOutResponseV2(await response.json());
 }
 
-export async function deleteDonations(deletionSecret: string): Promise<void> {
-  await apiFetch("/api/v1/donations", {
+export async function deleteServerData(deletionSecret: string): Promise<void> {
+  await apiFetch("/api/v1/query-data", {
     method: "DELETE",
     body: JSON.stringify({ schemaVersion: 1, deletionSecret }),
   });

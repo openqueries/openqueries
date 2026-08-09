@@ -23,9 +23,8 @@ export default function InstallPage() {
         <h1>Put the AI search trace beside the conversation.</h1>
         <p>
           Open Queries runs as a clean Chrome side panel. It reads explicit
-          web-search UI—not chat messages. Local capture works immediately;
-          fan-out estimates unlock after you enable query contribution and ask
-          for them.
+          web-search UI—not chat messages. Accept the privacy setting to reveal
+          the query trace and request fan-out estimates.
         </p>
         <div className="hero-actions">
           <a className="button primary" href={CHROME_WEB_STORE_URL}>
@@ -70,10 +69,10 @@ export default function InstallPage() {
             <li>
               <span>03</span>
               <div>
-                <strong>Choose donation settings</strong>
+                <strong>Accept privacy</strong>
                 <p>
-                  Review the exact data boundary. Enabling query contribution
-                  unlocks on-demand fan-out estimates.
+                  Review the exact data boundary. Privacy acceptance reveals the
+                  query trace and unlocks on-demand fan-out estimates.
                 </p>
               </div>
             </li>
@@ -91,7 +90,7 @@ export default function InstallPage() {
             "ChatGPT, Claude and supported Google Search pages only",
             "No messages, account identity or conversation metadata",
             "Local 30-day trace with one-click deletion",
-            "Server donations can be deleted and the anonymous ID rotated",
+            "Server query data can be deleted and the anonymous ID rotated",
           ].map((item) => (
             <li key={item}>
               <Check size={14} /> {item}

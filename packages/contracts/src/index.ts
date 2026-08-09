@@ -25,7 +25,7 @@ export const QueryObservationV1Schema = z
   })
   .strict();
 
-export const DonationEventV1Schema = z
+export const QueryEventUploadV1Schema = z
   .object({
     schemaVersion: z.literal(1),
     donorTag: z.string().regex(/^[a-f0-9]{64}$/),
@@ -100,7 +100,7 @@ export const FanOutResponseV2Schema = z
   })
   .strict();
 
-export const DeleteDonationsV1Schema = z
+export const DeleteQueryDataV1Schema = z
   .object({
     schemaVersion: z.literal(1),
     deletionSecret: z.string().regex(/^[a-f0-9]{64}$/),
@@ -110,7 +110,7 @@ export const DeleteDonationsV1Schema = z
 export type Platform = z.infer<typeof PlatformSchema>;
 export type SourceKind = z.infer<typeof SourceKindSchema>;
 export type QueryObservationV1 = z.infer<typeof QueryObservationV1Schema>;
-export type DonationEventV1 = z.infer<typeof DonationEventV1Schema>;
+export type QueryEventUploadV1 = z.infer<typeof QueryEventUploadV1Schema>;
 export type FanOutRequestV2 = z.infer<typeof FanOutRequestV2Schema>;
 export type NativeInversePerplexityScore = z.infer<
   typeof NativeInversePerplexityScoreSchema
@@ -120,4 +120,4 @@ export type EmpiricalInclusionFrequencyScore = z.infer<
 >;
 export type FanOutCandidateV2 = z.infer<typeof FanOutCandidateV2Schema>;
 export type FanOutResponseV2 = z.infer<typeof FanOutResponseV2Schema>;
-export type DeleteDonationsV1 = z.infer<typeof DeleteDonationsV1Schema>;
+export type DeleteQueryDataV1 = z.infer<typeof DeleteQueryDataV1Schema>;

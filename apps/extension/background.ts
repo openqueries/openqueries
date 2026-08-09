@@ -4,7 +4,7 @@ import type {
 } from "@openqueries/contracts";
 import { normalizeQuery, querySafety } from "@openqueries/query-core";
 
-import { deleteDonations, donateEvent, estimateFanOuts } from "./lib/api";
+import { deleteServerData, estimateFanOuts, sendEvent } from "./lib/api";
 import {
   readState,
   rotateDonor,
@@ -36,23 +36,18 @@ async function activeTabId(): Promise<number | null> {
   return tab?.id ?? null;
 }
 
-async function donateObservation(
+async function transferObservation(
   state: ExtensionState,
   event: LocalQueryEvent,
 ): Promise<ExtensionState> {
-  if (
-    !state.donationEnabled ||
-    !state.onboardingAcknowledged ||
-    event.donationBlockedReason
-  )
-    return state;
+  if (!state.privacyAccepted || event.privacyBlockedReason) return state;
   const {
     tabId: _tabId,
-    donationBlockedReason: _reason,
+    privacyBlockedReason: _reason,
     fanOuts: _fanOuts,
     ...observation
   } = event;
-  await donateEvent(state.donorTag, observation);
+  await sendEvent(state.donorTag, observation);
   return state;
 }
 
@@ -83,15 +78,15 @@ async function addObservation(
     extensionVersion: manifestVersion,
     adapterVersion: "1.0.1",
     tabId,
-    donationBlockedReason: safety.safe ? undefined : safety.reason,
+    privacyBlockedReason: safety.safe ? undefined : safety.reason,
   };
   state = { ...state, events: [event, ...state.events] };
   await writeState(state);
   try {
-    state = await donateObservation(state, event);
+    state = await transferObservation(state, event);
     await writeState(state);
   } catch {
-    // A failed contribution never removes the local observation.
+    // A failed transfer never removes the local observation.
   }
 }
 
@@ -109,28 +104,31 @@ async function handleRequest(
     if (request.type === "openqueries:get-state") {
       return { ok: true, state: toPublicState(state, await activeTabId()) };
     }
-    if (request.type === "openqueries:set-donation") {
+    if (request.type === "openqueries:set-privacy") {
+      const newlyAccepted = request.accepted && !state.privacyAccepted;
       state = {
         ...state,
-        donationEnabled: request.enabled,
-        // Changing the setting is itself an explicit acknowledgement.
-        onboardingAcknowledged: true,
+        privacyAccepted: request.accepted,
       };
-    } else if (request.type === "openqueries:acknowledge-onboarding") {
-      state = {
-        ...state,
-        donationEnabled: request.donationEnabled,
-        onboardingAcknowledged: true,
-      };
+      if (newlyAccepted) {
+        await writeState(state);
+        for (const event of state.events) {
+          try {
+            await transferObservation(state, event);
+          } catch {
+            // Privacy acceptance is durable even if one historical transfer fails.
+          }
+        }
+      }
     } else if (request.type === "openqueries:clear-local-history") {
       state = { ...state, events: [] };
-    } else if (request.type === "openqueries:delete-donations") {
-      await deleteDonations(state.deletionSecret);
+    } else if (request.type === "openqueries:delete-server-data") {
+      await deleteServerData(state.deletionSecret);
       state = await rotateDonor(state);
     } else if (request.type === "openqueries:estimate-fan-outs") {
-      if (!state.donationEnabled || !state.onboardingAcknowledged)
+      if (!state.privacyAccepted)
         throw new Error(
-          "Enable query contribution in Settings to use fan-out estimates.",
+          "Accept the privacy setting to view queries and use fan-out estimates.",
         );
       const event = state.events.find(
         (item) => item.eventId === request.eventId,

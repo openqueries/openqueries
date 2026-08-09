@@ -52,7 +52,7 @@ export default function SupportPage() {
           <a href="https://github.com/openqueries/openqueries/discussions">
             <MessageCircleQuestion size={18} />
             <strong>Discussion</strong>
-            <span>Methodology and contribution questions</span>
+            <span>Methodology and privacy questions</span>
           </a>
         </div>
       </section>

@@ -7,7 +7,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/privacy",
   title: "Privacy Policy",
   description:
-    "The Open Queries browser-extension and query-donation privacy policy.",
+    "The Open Queries browser-extension privacy policy for AI search queries.",
 });
 
 export default function PrivacyPage() {
@@ -27,16 +27,16 @@ export default function PrivacyPage() {
         </p>
       </section>
       <section>
-        <h2>What can be donated</h2>
+        <h2>What happens when privacy is accepted</h2>
         <p>
-          Query contribution starts off. If it is enabled during onboarding or
+          Privacy starts unaccepted. After it is accepted during onboarding or
           later in Settings, every eligible observed query is automatically sent
           with a random pseudonymous installation tag, whether or not its
           fan-outs are requested. For Google Search, the typed search query is
-          included as the clearly disclosed exception. Local capture remains
-          available without contribution; fan-out estimates are available only
-          while contribution is enabled. Contribution can be stopped and deleted
-          at any time.
+          included as the clearly disclosed exception. Until privacy is
+          accepted, the Current and History views show no query data. Privacy
+          acceptance can be switched off and server-side query data can be
+          deleted at any time.
         </p>
       </section>
       <section>
@@ -63,26 +63,25 @@ export default function PrivacyPage() {
         <h2>Filtering, processors and retention</h2>
         <p>
           Queries matching common email, phone, payment-card, access-token,
-          private-key or high-entropy secret patterns are blocked from donation.
-          While contribution is enabled, requested fan-out generation sends the
+          private-key or high-entropy secret patterns are blocked from transfer.
+          While privacy is accepted, requested fan-out generation sends the
           selected safe query to the corresponding model provider for
           provider-native estimation. Open Queries never sends one provider's
           candidates to a universal GPT ranker.
         </p>
         <p>
-          Raw donation events expire after 13 months. Cloudflare provides
-          hosting and D1 storage; OpenAI, Anthropic and Google process fan-out
-          requests for their respective roles.
+          Raw query events expire after 13 months. Cloudflare provides hosting
+          and D1 storage; OpenAI, Anthropic and Google process fan-out requests
+          for their respective roles.
         </p>
       </section>
       <section>
         <h2>Your controls</h2>
         <p>
           Settings provides separate controls to clear local history, stop
-          future donation and delete server-side events linked to the current
+          future transfer and delete server-side events linked to the current
           installation. Server deletion rotates the installation's pseudonymous
-          donor identifier. Estimated fan-outs are not stored as observed
-          queries.
+          identifier. Estimated fan-outs are not stored as observed queries.
         </p>
       </section>
       <section>

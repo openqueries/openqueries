@@ -8,19 +8,19 @@ See ChatGPT, Claude and Google AI search queries in a local side panel, then ins
 
 Open Queries makes the retrieval layer of AI search visible.
 
-When ChatGPT, Claude or Google Search runs a web search, the extension adds the provider's explicit search-tool query to a clean local side-panel trace. For ChatGPT this includes structured `search_queries` metadata when the interface shows only a website count. It never treats chat messages as search queries. After enabling query contribution, you can request likely fan-out queries for any captured search and inspect the provider-native evidence behind their order.
+When ChatGPT, Claude or Google Search runs a web search, the extension recognizes the provider's explicit search-tool query. For ChatGPT this includes structured `search_queries` metadata when the interface shows only a website count. It never treats chat messages as search queries. After accepting the privacy setting, you can view the query trace, request likely fan-out queries and inspect the provider-native evidence behind their order.
 
 WHAT YOU CAN INSPECT
 
 • Web-search queries surfaced by ChatGPT Search
 • Web-search queries surfaced by Claude web search
 • Google Search seeds and expanded queries shown in Google AI Overviews
-• Likely fan-out queries, generated only when contribution is enabled and you request them
+• Likely fan-out queries, generated only after privacy is accepted and you request them
 • Ranking details such as native token log probabilities, perplexity or repeated-sample inclusion frequency
 
-LOCAL BY DEFAULT
+PRIVACY ACCEPTANCE
 
-Your 30-day query trace stays in Chrome and remains available when contribution is off. Query contribution starts off; while enabled, every eligible observed query is automatically contributed and fan-out estimates are unlocked. Open Queries does not collect chat messages, conversation titles, account identity or conversation URLs.
+Privacy starts unaccepted. Until you accept it, Current and History show no query data. Once accepted, every eligible observed query is sent with a random pseudonymous installation tag, the query trace becomes visible and fan-out estimates are unlocked. Open Queries does not collect chat messages, conversation titles, account identity or conversation URLs.
 
 PROVIDER-NATIVE METHODOLOGY
 
@@ -52,16 +52,15 @@ Open Queries is independent and is not affiliated with, endorsed by or sponsored
 
 No Open Queries account is required. Pin the toolbar action and open the side
 panel beside ChatGPT, Claude or a Google Search result. Trigger a provider web
-search; its explicit search-tool query appears in the local trace even while
-contribution is off. In Claude, expand “Searched the web” to reveal the query
-chip. Open Settings, enable “Donate observed queries”, then select the query and
-click “Estimate fan-outs”. The parser emits only explicit search metadata or
+search. In Claude, expand “Searched the web” to reveal the query chip. Open
+Settings, switch on “Privacy accepted”, then select the query and click
+“Estimate fan-outs”. The parser emits only explicit search metadata or
 search UI and never stores or transfers chat messages. A supported provider may
 require its own login.
 
 ## Single purpose
 
-Open Queries records only explicit AI search-tool queries in a local Chrome side panel and, after the user enables query contribution and asks, returns likely fan-out queries with provider-native ranking evidence.
+Open Queries recognizes only explicit AI search-tool queries and, after the user accepts privacy, displays them in a Chrome side panel and returns requested fan-out queries with provider-native ranking evidence.
 
 ## Permission justifications
 
@@ -79,7 +78,7 @@ Registers the bundled ChatGPT document-start adapter in the page's main world so
 
 ### Site access
 
-Declared content scripts run only on ChatGPT, Claude and supported Google Search result pages. They read explicit search-tool UI or, on ChatGPT, explicit `search_queries` metadata. The `chatgpt.com` host permission is required to register that bundled main-world adapter. The `openqueries.org` host permission is used only for optional query contribution, deletion and the user-requested fan-out API.
+Declared content scripts run only on ChatGPT, Claude and supported Google Search result pages. They read explicit search-tool UI or, on ChatGPT, explicit `search_queries` metadata. The `chatgpt.com` host permission is required to register that bundled main-world adapter. The `openqueries.org` host permission is used only after privacy acceptance for query transfer, deletion and the user-requested fan-out API.
 
 ### Remote code
 
@@ -89,7 +88,8 @@ No remote code is used. All executable extension code is included in the submitt
 
 - Website content: explicit web-search query text exposed by a supported provider's search tool.
 - Local processing: enabled automatically for the side-panel trace.
-- Transfer for fan-outs: while contribution is enabled, one selected query is sent only after the user clicks “Estimate fan-outs”.
-- Contribution: after the user enables the control, every eligible observed query is automatically donated, whether or not its fan-outs are requested. It starts off, local capture remains available, and fan-out estimates stay locked until it is enabled.
+- Transfer: after privacy is accepted, every eligible observed query is automatically sent, whether or not its fan-outs are requested.
+- Fan-outs: after privacy is accepted, one selected query is sent to the corresponding provider only when the user clicks “Estimate fan-outs”.
+- Visibility: until privacy is accepted, Current and History display no query data and offer the privacy slider directly.
 - Not collected: chat messages, conversation titles, account identity, browsing history outside the supported search surfaces or conversation URLs.
 - Not sold, used for advertising, used for credit decisions or combined with unrelated personal data.

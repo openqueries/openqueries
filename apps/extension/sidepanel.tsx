@@ -119,12 +119,10 @@ function QueryCard({
   event,
   onEstimate,
   loading,
-  contributionEnabled,
 }: {
   event: LocalQueryEvent;
   onEstimate: (eventId: string) => void;
   loading: boolean;
-  contributionEnabled: boolean;
 }) {
   const [expanded, setExpanded] = useState(Boolean(event.fanOuts?.length));
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -162,22 +160,13 @@ function QueryCard({
         <span className="provenance-badge">{kindLabel(event)}</span>
       </div>
       <p className="query-text">{event.query}</p>
-      {event.donationBlockedReason ? (
+      {event.privacyBlockedReason ? (
         <p className="privacy-note">Kept local · possible sensitive data</p>
-      ) : null}
-      {!contributionEnabled ? (
-        <p className="privacy-note">
-          Enable query contribution in Settings to use fan-out estimates.
-        </p>
       ) : null}
       <div className="query-actions">
         <button
           className="estimate-button"
-          disabled={
-            loading ||
-            !contributionEnabled ||
-            Boolean(event.donationBlockedReason)
-          }
+          disabled={loading || Boolean(event.privacyBlockedReason)}
           onClick={() => onEstimate(event.eventId)}
         >
           {loading ? (
@@ -187,13 +176,11 @@ function QueryCard({
           )}
           {loading
             ? `${platformLabel(event.platform)} · ${elapsedSeconds}s`
-            : !contributionEnabled
-              ? "Contribution required"
-              : event.fanOuts?.length
-                ? "Refresh estimates"
-                : "Estimate fan-outs"}
+            : event.fanOuts?.length
+              ? "Refresh estimates"
+              : "Estimate fan-outs"}
         </button>
-        {contributionEnabled && event.fanOuts?.length ? (
+        {event.fanOuts?.length ? (
           <button
             className="icon-button"
             aria-label={expanded ? "Collapse fan-outs" : "Expand fan-outs"}
@@ -203,7 +190,7 @@ function QueryCard({
           </button>
         ) : null}
       </div>
-      {contributionEnabled && expanded && event.fanOuts?.length ? (
+      {expanded && event.fanOuts?.length ? (
         <div className="fanout-list">
           <div className="fanout-heading">
             <span>Estimated fan-outs</span>
@@ -223,6 +210,50 @@ function QueryCard({
         </div>
       ) : null}
     </article>
+  );
+}
+
+function PrivacyGate({
+  accepted,
+  onChange,
+}: {
+  accepted: boolean;
+  onChange: (accepted: boolean) => void;
+}) {
+  return (
+    <div className="privacy-gate">
+      <div className="privacy-gate-icon">
+        <Settings size={18} />
+      </div>
+      <p>Privacy not accepted</p>
+      <h2>Accept privacy to view queries</h2>
+      <span>
+        When accepted, every eligible web-search query is sent to Open Queries.
+        Chat messages are never sent.
+      </span>
+      <div className="privacy-gate-control">
+        <div>
+          <strong>Privacy accepted</strong>
+          <small>Show queries and enable fan-out estimates</small>
+        </div>
+        <button
+          className={`switch ${accepted ? "on" : ""}`}
+          role="switch"
+          aria-label="Accept privacy settings"
+          aria-checked={accepted}
+          onClick={() => onChange(!accepted)}
+        >
+          <i />
+        </button>
+      </div>
+      <a
+        href="https://openqueries.org/privacy"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Read the privacy details ↗
+      </a>
+    </div>
   );
 }
 
@@ -251,6 +282,7 @@ export default function SidePanel() {
   const [filter, setFilter] = useState("");
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const privacyAccepted = Boolean(state?.privacyAccepted);
 
   const load = useCallback(async () => {
     const response = await message({ type: "openqueries:get-state" });
@@ -271,7 +303,7 @@ export default function SidePanel() {
   }, [load]);
 
   const events = useMemo(() => {
-    if (!state) return [];
+    if (!state || !privacyAccepted) return [];
     const base =
       view === "current"
         ? state.events.filter((event) => event.tabId === state.activeTabId)
@@ -280,7 +312,7 @@ export default function SidePanel() {
     return query
       ? base.filter((event) => event.query.toLocaleLowerCase().includes(query))
       : base;
-  }, [filter, state, view]);
+  }, [filter, privacyAccepted, state, view]);
 
   const estimate = async (eventId: string) => {
     setLoadingId(eventId);
@@ -294,12 +326,13 @@ export default function SidePanel() {
     setLoadingId(null);
   };
 
-  const setDonation = async (enabled: boolean) => {
+  const setPrivacyAccepted = async (accepted: boolean) => {
     const response = await message({
-      type: "openqueries:set-donation",
-      enabled,
+      type: "openqueries:set-privacy",
+      accepted,
     });
-    if (response.ok && response.state) setState(response.state);
+    if (!response.ok) setError(response.error);
+    else if (response.state) setState(response.state);
   };
 
   const clearLocal = async () => {
@@ -309,14 +342,16 @@ export default function SidePanel() {
     if (response.ok && response.state) setState(response.state);
   };
 
-  const removeDonations = async () => {
+  const removeServerData = async () => {
     if (
       !window.confirm(
-        "Delete all server-side donations from this installation?",
+        "Delete all server-side query data from this installation?",
       )
     )
       return;
-    const response = await message({ type: "openqueries:delete-donations" });
+    const response = await message({
+      type: "openqueries:delete-server-data",
+    });
     if (!response.ok) setError(response.error);
     else if (response.state) setState(response.state);
   };
@@ -335,17 +370,12 @@ export default function SidePanel() {
           </span>
           <span>Open Queries</span>
         </a>
-        <span
-          className={`donation-status ${state?.donationEnabled && state.onboardingAcknowledged ? "active" : ""}`}
-        >
-          <i />{" "}
-          {state?.donationEnabled && state.onboardingAcknowledged
-            ? "Contributing"
-            : "Not contributing"}
+        <span className={`privacy-status ${privacyAccepted ? "active" : ""}`}>
+          <i /> {privacyAccepted ? "Privacy accepted" : "Privacy not accepted"}
         </span>
       </header>
 
-      {view !== "settings" ? (
+      {view !== "settings" && privacyAccepted ? (
         <div className="panel-context">
           <div>
             <p>{view === "current" ? "Live query trace" : "Local history"}</p>
@@ -359,7 +389,7 @@ export default function SidePanel() {
         </div>
       ) : null}
 
-      {view === "history" ? (
+      {view === "history" && privacyAccepted ? (
         <label className="search-field">
           <Search size={15} />
           <input
@@ -389,18 +419,19 @@ export default function SidePanel() {
             </div>
             <div className="setting-row">
               <div>
-                <strong>Donate observed queries</strong>
+                <strong>Privacy accepted</strong>
                 <span>
-                  Automatically contribute every eligible model web search and
-                  the disclosed Google Search exception. Fan-out estimates are
-                  available while contribution is enabled.
+                  Send every eligible model web search and the disclosed Google
+                  Search exception. Queries and fan-out estimates are visible
+                  only while this setting is accepted.
                 </span>
               </div>
               <button
-                className={`switch ${state?.donationEnabled ? "on" : ""}`}
+                className={`switch ${privacyAccepted ? "on" : ""}`}
                 role="switch"
-                aria-checked={state?.donationEnabled}
-                onClick={() => void setDonation(!state?.donationEnabled)}
+                aria-label="Accept privacy settings"
+                aria-checked={privacyAccepted}
+                onClick={() => void setPrivacyAccepted(!privacyAccepted)}
               >
                 <i />
               </button>
@@ -419,17 +450,17 @@ export default function SidePanel() {
             </div>
             <div className="setting-row stacked">
               <div>
-                <strong>Server donations</strong>
+                <strong>Server query data</strong>
                 <span>
                   Delete events linked to this installation and rotate its
-                  anonymous donor ID.
+                  anonymous installation ID.
                 </span>
               </div>
               <button
                 className="secondary-button"
-                onClick={() => void removeDonations()}
+                onClick={() => void removeServerData()}
               >
-                <Database size={14} /> Delete my donations
+                <Database size={14} /> Delete server data
               </button>
             </div>
             <div className="settings-links">
@@ -456,6 +487,11 @@ export default function SidePanel() {
               </a>
             </div>
           </div>
+        ) : !privacyAccepted ? (
+          <PrivacyGate
+            accepted={privacyAccepted}
+            onChange={(accepted) => void setPrivacyAccepted(accepted)}
+          />
         ) : events.length ? (
           <div className="query-list">
             {events.map((event) => (
@@ -463,9 +499,6 @@ export default function SidePanel() {
                 key={event.eventId}
                 event={event}
                 loading={loadingId === event.eventId}
-                contributionEnabled={Boolean(
-                  state?.donationEnabled && state.onboardingAcknowledged,
-                )}
                 onEstimate={(id) => void estimate(id)}
               />
             ))}

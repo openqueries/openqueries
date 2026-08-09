@@ -15,7 +15,7 @@ export default function SecurityPage() {
     <EditorialPage
       eyebrow="Security policy"
       title="Report sensitive failures privately."
-      intro="Do not open a public issue for credential exposure, chat-boundary bypasses or donation-deletion failures."
+      intro="Do not open a public issue for credential exposure, chat-boundary bypasses or server-data deletion failures."
     >
       <section>
         <h2>Private contact</h2>
@@ -32,7 +32,7 @@ export default function SecurityPage() {
           <li>Extraction of chat messages or conversation metadata.</li>
           <li>Provider credentials present in an extension bundle or log.</li>
           <li>Cross-installation deletion or quota bypasses.</li>
-          <li>A deleted donation remaining accessible after deletion.</li>
+          <li>Deleted server-side query data remaining accessible.</li>
           <li>Sensitive-query filters that can be bypassed.</li>
         </ul>
       </section>

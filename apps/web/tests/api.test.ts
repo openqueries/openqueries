@@ -4,7 +4,7 @@ import test from "node:test";
 import { handleApi } from "../worker/api";
 import type { AppEnv } from "../worker/env";
 
-test("stores one eligible donation directly in D1", async () => {
+test("stores one eligible query event directly in D1", async () => {
   let sql = "";
   let values: unknown[] = [];
   const statement = {

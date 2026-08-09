@@ -17,7 +17,7 @@ async function main() {
   };
 
   assert.equal(manifest.name, "Open Queries – AI Search Query Inspector");
-  assert.equal(manifest.version, "1.0.1");
+  assert.equal(manifest.version, "1.0.2");
   assert.equal(
     manifest.description,
     "See ChatGPT, Claude and Google AI search queries in a local side panel, then inspect likely fan-out queries on demand.",
@@ -45,15 +45,14 @@ async function main() {
   const panelBehaviorCalls: unknown[] = [];
   const installedListeners: Array<(details: { reason: string }) => void> = [];
   const messageListeners: unknown[] = [];
-  const eventId = "estimate-while-contribution-off";
+  const eventId = "estimate-before-privacy-acceptance";
   const selectedEventId = "selected-for-expansion";
   const unselectedEventId = "unselected-observation";
   const stateKey = "openqueries:state:v1";
   const stored: Record<string, unknown> = {
     [stateKey]: {
       schemaVersion: 1,
-      donationEnabled: false,
-      onboardingAcknowledged: false,
+      privacyAccepted: false,
       deletionSecret: "a".repeat(64),
       donorTag: "b".repeat(64),
       events: [
@@ -79,7 +78,7 @@ async function main() {
       body: typeof init?.body === "string" ? init.body : undefined,
     });
     if (url.endsWith("/api/v1/events"))
-      return new Response(null, { status: 202 });
+      return new Response(null, { status: 201 });
     return new Response(
       JSON.stringify({
         schemaVersion: 2,
@@ -185,22 +184,24 @@ async function main() {
   assert.equal(blockedEstimateResponse.ok, false);
   assert.match(
     String(blockedEstimateResponse.error),
-    /Enable query contribution/u,
+    /Accept the privacy setting/u,
   );
   assert.equal(fetchCalls.length, 0);
 
-  const donationResponse = await send({
-    type: "openqueries:set-donation",
-    enabled: true,
+  const privacyResponse = await send({
+    type: "openqueries:set-privacy",
+    accepted: true,
   });
-  assert.equal(donationResponse.ok, true);
-  const publicState = donationResponse.state as {
-    donationEnabled?: boolean;
-    onboardingAcknowledged?: boolean;
+  assert.equal(privacyResponse.ok, true);
+  const publicState = privacyResponse.state as {
+    privacyAccepted?: boolean;
   };
-  assert.equal(publicState.donationEnabled, true);
-  assert.equal(publicState.onboardingAcknowledged, true);
-  assert.equal(fetchCalls.length, 0, "pre-consent history stays local");
+  assert.equal(publicState.privacyAccepted, true);
+  assert.equal(
+    fetchCalls.filter(({ url }) => url.endsWith("/api/v1/events")).length,
+    1,
+    "accepting privacy transfers existing eligible history",
+  );
 
   for (const observation of [
     {
@@ -224,22 +225,26 @@ async function main() {
     );
     assert.equal(observationResponse.ok, true);
   }
-  const donationCalls = fetchCalls.filter(({ url }) =>
+  const eventCalls = fetchCalls.filter(({ url }) =>
     url.endsWith("/api/v1/events"),
   );
-  assert.equal(donationCalls.length, 2);
-  const donatedEvents = donationCalls.flatMap(({ body }) => {
+  assert.equal(eventCalls.length, 3);
+  const transferredEvents = eventCalls.flatMap(({ body }) => {
     assert.ok(body);
     return [(JSON.parse(body) as { event: { eventId: string } }).event];
   });
   assert.ok(
-    donationCalls.every(
+    eventCalls.every(
       ({ body }) => body && !Array.isArray(JSON.parse(body).event),
     ),
   );
   assert.deepEqual(
-    new Set(donatedEvents.map(({ eventId: donatedEventId }) => donatedEventId)),
-    new Set([unselectedEventId, selectedEventId]),
+    new Set(
+      transferredEvents.map(
+        ({ eventId: transferredEventId }) => transferredEventId,
+      ),
+    ),
+    new Set([eventId, unselectedEventId, selectedEventId]),
   );
 
   const estimateResponse = await send({
@@ -258,7 +263,7 @@ async function main() {
   );
 
   console.log(
-    "Production MV3 worker immediately donates each eligible observation and gates estimates on accepted contribution.",
+    "Production MV3 worker transfers every eligible observation and gates the query UI and estimates on privacy acceptance.",
   );
 }
 

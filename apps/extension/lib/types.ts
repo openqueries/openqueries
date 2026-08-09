@@ -7,14 +7,13 @@ import type {
 
 export type LocalQueryEvent = QueryObservationV1 & {
   tabId: number | null;
-  donationBlockedReason?: string;
+  privacyBlockedReason?: string;
   fanOuts?: FanOutCandidateV2[];
 };
 
 export type ExtensionState = {
   schemaVersion: 1;
-  donationEnabled: boolean;
-  onboardingAcknowledged: boolean;
+  privacyAccepted: boolean;
   deletionSecret: string;
   donorTag: string;
   events: LocalQueryEvent[];
@@ -37,10 +36,9 @@ export type ObservationInput = {
 export type RuntimeRequest =
   | { type: "openqueries:observation"; observation: ObservationInput }
   | { type: "openqueries:get-state" }
-  | { type: "openqueries:set-donation"; enabled: boolean }
-  | { type: "openqueries:acknowledge-onboarding"; donationEnabled: boolean }
+  | { type: "openqueries:set-privacy"; accepted: boolean }
   | { type: "openqueries:clear-local-history" }
-  | { type: "openqueries:delete-donations" }
+  | { type: "openqueries:delete-server-data" }
   | { type: "openqueries:estimate-fan-outs"; eventId: string };
 
 export type RuntimeResponse =

@@ -18,7 +18,7 @@ test("normalizes query typography without rewriting meaning", () => {
   );
 });
 
-test("blocks common secrets and direct identifiers before donation", () => {
+test("blocks common secrets and direct identifiers before transfer", () => {
   assert.equal(querySafety("find jane@example.com").reason, "email");
   assert.equal(
     querySafety(`use token sk-${"abcdefghijklmnopqrstuvwxyz123456"}`).reason,

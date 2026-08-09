@@ -6,7 +6,7 @@ import type { RuntimeResponse } from "./lib/types";
 import "./style.css";
 
 export default function OptionsPage() {
-  const [donationEnabled, setDonationEnabled] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [complete, setComplete] = useState(false);
 
   useEffect(() => {
@@ -14,16 +14,15 @@ export default function OptionsPage() {
       .sendMessage({ type: "openqueries:get-state" })
       .then((response: RuntimeResponse) => {
         if (response.ok && response.state) {
-          setDonationEnabled(response.state.donationEnabled);
-          setComplete(response.state.onboardingAcknowledged);
+          setPrivacyAccepted(response.state.privacyAccepted);
         }
       });
   }, []);
 
   const continueToExtension = async () => {
     const response = (await chrome.runtime.sendMessage({
-      type: "openqueries:acknowledge-onboarding",
-      donationEnabled,
+      type: "openqueries:set-privacy",
+      accepted: privacyAccepted,
     })) as RuntimeResponse;
     if (response.ok) setComplete(true);
   };
@@ -48,8 +47,8 @@ export default function OptionsPage() {
         </h1>
         <p className="onboarding-deck">
           Open Queries reads only the web-search queries shown by supported AI
-          services. They stay in your local side panel unless you choose to
-          contribute them.
+          services. Accept the privacy setting to view them and use fan-out
+          estimates.
         </p>
         <div className="privacy-contract">
           <div>
@@ -67,18 +66,18 @@ export default function OptionsPage() {
             </span>
           </div>
         </div>
-        <label className="donation-choice">
+        <label className="privacy-choice">
           <input
             type="checkbox"
-            checked={donationEnabled}
-            onChange={(event) => setDonationEnabled(event.target.checked)}
+            checked={privacyAccepted}
+            onChange={(event) => setPrivacyAccepted(event.target.checked)}
           />
           <span>
-            <strong>Help build the open AI query history</strong>
+            <strong>Accept privacy settings</strong>
             <small>
-              Automatically share every privacy-checked search query—not
-              chats—and unlock fan-out estimates. Contribution starts off and
-              can be stopped or deleted at any time.
+              Every eligible web-search query—not chats—is sent to Open Queries.
+              Acceptance unlocks the query trace and fan-out estimates and can
+              be switched off at any time.
             </small>
           </span>
         </label>

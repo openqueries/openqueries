@@ -16,8 +16,7 @@ export async function createInitialState(): Promise<ExtensionState> {
   const deletionSecret = randomHex();
   return {
     schemaVersion: 1,
-    donationEnabled: false,
-    onboardingAcknowledged: false,
+    privacyAccepted: false,
     deletionSecret,
     donorTag: await sha256Hex(deletionSecret),
     events: [],
@@ -45,16 +44,14 @@ export function pruneEvents(
     .slice(0, MAX_EVENTS);
 }
 
-export function reconcileContributionState(
-  state: ExtensionState,
-): ExtensionState {
-  if (!state.donationEnabled || state.onboardingAcknowledged) return state;
-  return { ...state, onboardingAcknowledged: true };
-}
-
 export async function readState(): Promise<ExtensionState> {
   const stored = await chrome.storage.local.get(STATE_KEY);
-  const state = stored[STATE_KEY] as ExtensionState | undefined;
+  const state = stored[STATE_KEY] as
+    | (ExtensionState & {
+        donationEnabled?: boolean;
+        onboardingAcknowledged?: boolean;
+      })
+    | undefined;
   if (
     !state ||
     state.schemaVersion !== 1 ||
@@ -65,13 +62,25 @@ export async function readState(): Promise<ExtensionState> {
     await writeState(initial);
     return initial;
   }
-  const reconciled = reconcileContributionState(state);
-  const pruned = pruneEvents(reconciled.events ?? []);
+  const privacyAccepted =
+    typeof state.privacyAccepted === "boolean"
+      ? state.privacyAccepted
+      : Boolean(state.donationEnabled);
+  const pruned = pruneEvents(state.events ?? []);
   let migrated = false;
   const events = pruned.map((event) => {
+    const legacyEvent = event as LocalQueryEvent & {
+      donationBlockedReason?: string;
+    };
+    const { donationBlockedReason: legacyBlockedReason, ...currentEvent } =
+      legacyEvent;
+    const migratedEvent = legacyBlockedReason
+      ? { ...currentEvent, privacyBlockedReason: legacyBlockedReason }
+      : currentEvent;
+    if (legacyBlockedReason) migrated = true;
     if (
-      !event.fanOuts?.length ||
-      event.fanOuts.every(
+      !migratedEvent.fanOuts?.length ||
+      migratedEvent.fanOuts.every(
         (candidate) =>
           candidate &&
           typeof candidate === "object" &&
@@ -79,14 +88,20 @@ export async function readState(): Promise<ExtensionState> {
           candidate.score,
       )
     )
-      return event;
+      return migratedEvent;
     migrated = true;
-    return { ...event, fanOuts: undefined };
+    return { ...migratedEvent, fanOuts: undefined };
   });
-  const next = { ...reconciled, events };
+  const {
+    donationEnabled: _legacyEnabled,
+    onboardingAcknowledged: _legacyAcknowledged,
+    ...current
+  } = state;
+  const next: ExtensionState = { ...current, privacyAccepted, events };
   if (
     migrated ||
-    reconciled !== state ||
+    _legacyEnabled !== undefined ||
+    _legacyAcknowledged !== undefined ||
     next.events.length !== (state.events ?? []).length
   )
     await writeState(next);
