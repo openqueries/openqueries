@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createInitialState, pruneEvents, rotateDonor } from "../lib/storage";
+import {
+  createInitialState,
+  pruneEvents,
+  reconcileContributionState,
+  rotateDonor,
+} from "../lib/storage";
 import type { ExtensionState, LocalQueryEvent } from "../lib/types";
 
 function event(eventId: string, capturedAt: string): LocalQueryEvent {
@@ -64,6 +69,20 @@ test("starts query contribution off until the user chooses it", async () => {
   const state = await createInitialState();
   assert.equal(state.donationEnabled, false);
   assert.equal(state.onboardingAcknowledged, false);
+});
+
+test("repairs the legacy enabled-but-unacknowledged contribution state", () => {
+  const state: ExtensionState = {
+    schemaVersion: 1,
+    donationEnabled: true,
+    onboardingAcknowledged: false,
+    deletionSecret: "a".repeat(64),
+    donorTag: "b".repeat(64),
+    events: [],
+  };
+  const reconciled = reconcileContributionState(state);
+  assert.equal(reconciled.donationEnabled, true);
+  assert.equal(reconciled.onboardingAcknowledged, true);
 });
 
 test("server deletion rotates the donor without re-donating existing local history", async () => {

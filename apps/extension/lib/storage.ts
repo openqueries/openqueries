@@ -45,6 +45,13 @@ export function pruneEvents(
     .slice(0, MAX_EVENTS);
 }
 
+export function reconcileContributionState(
+  state: ExtensionState,
+): ExtensionState {
+  if (!state.donationEnabled || state.onboardingAcknowledged) return state;
+  return { ...state, onboardingAcknowledged: true };
+}
+
 export async function readState(): Promise<ExtensionState> {
   const stored = await chrome.storage.local.get(STATE_KEY);
   const state = stored[STATE_KEY] as ExtensionState | undefined;
@@ -58,7 +65,8 @@ export async function readState(): Promise<ExtensionState> {
     await writeState(initial);
     return initial;
   }
-  const pruned = pruneEvents(state.events ?? []);
+  const reconciled = reconcileContributionState(state);
+  const pruned = pruneEvents(reconciled.events ?? []);
   let migrated = false;
   const events = pruned.map((event) => {
     if (
@@ -75,8 +83,12 @@ export async function readState(): Promise<ExtensionState> {
     migrated = true;
     return { ...event, fanOuts: undefined, fanOutGeneratedAt: undefined };
   });
-  const next = { ...state, events };
-  if (migrated || next.events.length !== (state.events ?? []).length)
+  const next = { ...reconciled, events };
+  if (
+    migrated ||
+    reconciled !== state ||
+    next.events.length !== (state.events ?? []).length
+  )
     await writeState(next);
   return next;
 }

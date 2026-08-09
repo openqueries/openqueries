@@ -327,8 +327,8 @@ export default function SidePanel() {
         >
           <i />{" "}
           {state?.donationEnabled && state.onboardingAcknowledged
-            ? "Donating"
-            : "Local only"}
+            ? "Contributing"
+            : "Not contributing"}
         </span>
       </header>
 
@@ -379,7 +379,7 @@ export default function SidePanel() {
                 <strong>Donate observed queries</strong>
                 <span>
                   Contribute model web searches and the disclosed Google Search
-                  exception.
+                  exception. Fan-out estimates work either way.
                 </span>
               </div>
               <button

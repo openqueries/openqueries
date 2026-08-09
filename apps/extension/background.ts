@@ -117,7 +117,12 @@ async function handleRequest(
       return { ok: true, state: toPublicState(state, await activeTabId()) };
     }
     if (request.type === "openqueries:set-donation") {
-      state = { ...state, donationEnabled: request.enabled };
+      state = {
+        ...state,
+        donationEnabled: request.enabled,
+        // Changing the setting is itself an explicit acknowledgement.
+        onboardingAcknowledged: true,
+      };
     } else if (request.type === "openqueries:acknowledge-onboarding") {
       state = {
         ...state,

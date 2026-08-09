@@ -45,6 +45,61 @@ async function main() {
   const panelBehaviorCalls: unknown[] = [];
   const installedListeners: Array<(details: { reason: string }) => void> = [];
   const messageListeners: unknown[] = [];
+  const eventId = "estimate-while-contribution-off";
+  const stateKey = "openqueries:state:v1";
+  const stored: Record<string, unknown> = {
+    [stateKey]: {
+      schemaVersion: 1,
+      donationEnabled: false,
+      onboardingAcknowledged: false,
+      deletionSecret: "a".repeat(64),
+      donorTag: "b".repeat(64),
+      events: [
+        {
+          schemaVersion: 1,
+          eventId,
+          platform: "chatgpt",
+          sourceKind: "observed_model_search",
+          query: "site:example.org evidence",
+          capturedAt: "2026-08-09T12:00:00.000Z",
+          extensionVersion: "1.0.1",
+          adapterVersion: "1.0.1",
+          tabId: 1,
+        },
+      ],
+    },
+  };
+  const fetchCalls: string[] = [];
+  const fetchMock = async (input: RequestInfo | URL) => {
+    fetchCalls.push(String(input));
+    return new Response(
+      JSON.stringify({
+        schemaVersion: 2,
+        requestId: crypto.randomUUID(),
+        sourceQuery: "site:example.org evidence",
+        platform: "chatgpt",
+        fanOuts: [
+          {
+            query: "site:example.org supporting evidence",
+            rank: 1,
+            provenance: "estimated",
+            score: {
+              kind: "native_inverse_perplexity",
+              value: 0.8,
+              meanTokenLogProbability: -0.2,
+              perplexity: 1.25,
+              tokenCount: 4,
+            },
+          },
+        ],
+        method: "provider_native_logprobs",
+        model: "gpt-5.6-luna",
+        promptVersion: "fanout-v2.1.0",
+        generatedAt: "2026-08-09T12:00:01.000Z",
+      }),
+      { status: 200, headers: { "content-type": "application/json" } },
+    );
+  };
 
   const chromeMock = {
     runtime: {
@@ -68,8 +123,10 @@ async function main() {
     },
     storage: {
       local: {
-        get: async () => ({}),
-        set: async () => undefined,
+        get: async () => ({ ...stored }),
+        set: async (value: Record<string, unknown>) => {
+          Object.assign(stored, value);
+        },
       },
     },
     scripting: {
@@ -81,7 +138,7 @@ async function main() {
     chrome: chromeMock,
     console,
     crypto: globalThis.crypto,
-    fetch: globalThis.fetch,
+    fetch: fetchMock,
     TextDecoder,
     TextEncoder,
     URL,
@@ -98,8 +155,43 @@ async function main() {
     JSON.stringify([{ openPanelOnActionClick: true }]),
   );
 
+  const listener = messageListeners[0] as (
+    request: unknown,
+    sender: unknown,
+    sendResponse: (response: unknown) => void,
+  ) => boolean;
+  const send = (request: unknown) =>
+    new Promise<Record<string, unknown>>((resolve) => {
+      assert.equal(
+        listener(request, {}, (response) =>
+          resolve(response as Record<string, unknown>),
+        ),
+        true,
+      );
+    });
+
+  const estimateResponse = await send({
+    type: "openqueries:estimate-fan-outs",
+    eventId,
+  });
+  assert.equal(estimateResponse.ok, true);
+  assert.equal(fetchCalls.length, 1);
+  assert.match(fetchCalls[0] ?? "", /\/api\/v2\/fan-outs$/u);
+
+  const donationResponse = await send({
+    type: "openqueries:set-donation",
+    enabled: true,
+  });
+  assert.equal(donationResponse.ok, true);
+  const publicState = donationResponse.state as {
+    donationEnabled?: boolean;
+    onboardingAcknowledged?: boolean;
+  };
+  assert.equal(publicState.donationEnabled, true);
+  assert.equal(publicState.onboardingAcknowledged, true);
+
   console.log(
-    "Production MV3 service worker booted and registered the side panel.",
+    "Production MV3 worker booted; estimates remain independent of contribution.",
   );
 }
 
