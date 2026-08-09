@@ -2,6 +2,24 @@ import type { SVGProps } from "react";
 
 export type Provider = "chatgpt" | "claude" | "google";
 
+export function OpenQueriesMark({
+  size = 16,
+  ...props
+}: Omit<SVGProps<SVGSVGElement>, "children"> & { size?: number }) {
+  return (
+    <svg
+      {...props}
+      aria-hidden="true"
+      width={size}
+      height={size}
+      viewBox="0 0 512 512"
+      fill="currentColor"
+    >
+      <path d="M142 166h102v42h-60v96h60v42H142V166Zm228 0v180H268v-42h60v-96h-60v-42h102Z" />
+    </svg>
+  );
+}
+
 type ProviderLogoProps = Omit<SVGProps<SVGSVGElement>, "children"> & {
   provider: Provider;
   size?: number;

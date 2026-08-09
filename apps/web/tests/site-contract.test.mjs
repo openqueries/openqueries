@@ -8,7 +8,7 @@ const read = (path) => readFileSync(join(root, path), "utf8");
 
 test("publishes the mission, privacy boundary and open-source posture", () => {
   const home = read("app/page.tsx");
-  assert.match(home, /See what AI/u);
+  assert.match(home, /See the queries behind AI search/u);
   assert.match(home, /Queries, not conversations/u);
   assert.match(home, /AGPL-3\.0/u);
   assert.match(home, /Estimated stays|Observed stays observed/u);
@@ -25,6 +25,8 @@ test("ships stable SEO, methodology and legal surfaces", () => {
     "app/robots.ts",
     "app/methodology/page.tsx",
     "app/privacy/page.tsx",
+    "app/security/page.tsx",
+    "app/support/page.tsx",
     "app/terms/page.tsx",
     "app/open-source/page.tsx",
     "app/learn/page.tsx",
@@ -32,6 +34,8 @@ test("ships stable SEO, methodology and legal surfaces", () => {
   ]) {
     assert.ok(read(path).length > 100, path);
   }
+  assert.match(read("app/math.tsx"), /renderToString/u);
+  assert.match(read("app/math.tsx"), /htmlAndMathml/u);
   assert.match(
     read("app/learn/[slug]/page.tsx"),
     /application\/ld\+json|StructuredData/u,

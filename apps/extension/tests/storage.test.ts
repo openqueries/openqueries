@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { pruneEvents, rotateDonor } from "../lib/storage";
+import { createInitialState, pruneEvents, rotateDonor } from "../lib/storage";
 import type { ExtensionState, LocalQueryEvent } from "../lib/types";
 
 function event(eventId: string, capturedAt: string): LocalQueryEvent {
@@ -26,6 +26,12 @@ test("prunes local history after 30 days", () => {
     pruneEvents([expired, recent], now).map((item) => item.eventId),
     ["recent-event"],
   );
+});
+
+test("starts query contribution off until the user chooses it", async () => {
+  const state = await createInitialState();
+  assert.equal(state.donationEnabled, false);
+  assert.equal(state.onboardingAcknowledged, false);
 });
 
 test("server deletion rotates the donor without re-donating existing local history", async () => {

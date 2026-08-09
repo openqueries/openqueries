@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { EditorialPage } from "../components";
+import { DisplayMath, InlineMath } from "../math";
 import { pageMetadata } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
@@ -51,12 +52,13 @@ export default function MethodologyPage() {
       <section>
         <h2>2. Controlled generation experiment</h2>
         <p>
-          For a seed query <i>x</i>, provider model <i>m</i>, prompt <i>p</i>{" "}
-          and prompt version <i>v</i>, the model produces one structured vector
+          For a seed query <InlineMath>x</InlineMath>, provider model{" "}
+          <InlineMath>m</InlineMath> and minimal versioned prompt{" "}
+          <InlineMath>p_v</InlineMath>, the model produces one structured vector
           of exactly 12 candidate queries:
         </p>
         <div className="formula">
-          <code>Y = (q₁, …, q₁₂) ~ Pₘ(· | x, p, v)</code>
+          <DisplayMath>{String.raw`Y=(q_1,\ldots,q_{12})\sim P_m(\,\cdot\mid x,p_v\,)`}</DisplayMath>
           <span>
             The prompt asks only for distinct web-search queries in the seed
             language. It contains no categories, rationales, scoring rubric or
@@ -74,15 +76,16 @@ export default function MethodologyPage() {
         <h2>3. Native token log probabilities where exposed</h2>
         <p>
           GPT-5.6 Luna returns token log probabilities for the same structured
-          output that contains the candidates. For a query <i>q</i>, let
-          <i>T(q)</i> be the set of output tokens whose UTF-8 byte interval
-          overlaps that query’s JSON string content. Every token is included
-          once; token length does not create extra weight.
+          output that contains the candidates. For a query{" "}
+          <InlineMath>q</InlineMath>, let <InlineMath>T(q)</InlineMath> be the
+          set of output tokens whose UTF-8 byte interval overlaps that query’s
+          JSON string content. Every token is included once; token length does
+          not create extra weight.
         </p>
         <div className="formula stack">
-          <code>ℓ̄(q) = (1 / |T(q)|) Σₜ∈T(q) log Pₘ(t | t&lt;t, x, p, v)</code>
-          <code>PP(q) = exp(−ℓ̄(q))</code>
-          <code>s(q) = PP(q)⁻¹ = exp(ℓ̄(q))</code>
+          <DisplayMath>{String.raw`\bar{\ell}(q)=\frac{1}{|T(q)|}\sum_{t_k\in T(q)}\log P_m(t_k\mid t_{<k},x,p_v)`}</DisplayMath>
+          <DisplayMath>{String.raw`\operatorname{PP}(q)=\exp\!\left(-\bar{\ell}(q)\right)`}</DisplayMath>
+          <DisplayMath>{String.raw`s(q)=\operatorname{PP}(q)^{-1}=\exp\!\left(\bar{\ell}(q)\right)`}</DisplayMath>
           <span>
             Lower perplexity implies greater compatibility with that provider’s
             own decoding distribution in this run. The API exposes the mean log
@@ -101,18 +104,19 @@ export default function MethodologyPage() {
       <section>
         <h2>4. Google and Anthropic: empirical native sampling</h2>
         <p>
-          Anthropic’s public API does not expose output token logprobs for
-          Claude. Google’s current Gemini 3.1 Flash-Lite Developer API endpoint
-          rejects <code>responseLogprobs</code> even though the field exists in
-          the API schema. Open Queries therefore reports a different estimator
-          instead of silently using GPT. Each provider model receives the same
-          versioned prompt in 16 independent structured-output calls. At least
-          12 must succeed.
+          The current Anthropic endpoint does not return output token logprobs
+          for Claude. The configured Gemini 3.1 Flash-Lite Developer API
+          endpoint rejects <code>responseLogprobs</code>. These are measured
+          endpoint capabilities, not assumptions about every historic model or
+          SDK. Open Queries therefore reports a different provider-native
+          estimator instead of silently using GPT. Each provider model receives
+          the same versioned prompt in 16 independent structured-output calls.
+          At least 12 must succeed.
         </p>
         <div className="formula stack">
-          <code>K(q) = Σᵢ₌₁ⁿ 𝟙[q ∈ Yᵢ]</code>
-          <code>p̂(q) = K(q) / n</code>
-          <code>CI₉₅ = (p̂ + z²/2n ± z√(p̂(1−p̂)/n + z²/4n²)) / (1 + z²/n)</code>
+          <DisplayMath>{String.raw`K(q)=\sum_{i=1}^{n}\mathbf{1}\!\left[q\in Y_i\right]`}</DisplayMath>
+          <DisplayMath>{String.raw`\hat p(q)=\frac{K(q)}{n}`}</DisplayMath>
+          <DisplayMath>{String.raw`\operatorname{CI}_{95}(q)=\frac{\hat p+\frac{z^2}{2n}\;\pm\;z\sqrt{\frac{\hat p(1-\hat p)}{n}+\frac{z^2}{4n^2}}}{1+\frac{z^2}{n}},\qquad z=1.95996`}</DisplayMath>
           <span>
             Here z = 1.95996 and n is the number of valid samples from the named
             provider. Queries rank by inclusion frequency, then mean first
@@ -135,10 +139,10 @@ export default function MethodologyPage() {
           values as demand percentages.
         </p>
         <p>
-          Donation is controllable during onboarding and in Settings. Raw events
-          expire after 13 months. Durable daily aggregates require at least five
-          distinct anonymous donor tags. Estimated fan-outs never enter
-          observed-query aggregates.
+          Query contribution starts off and is controllable during onboarding
+          and in Settings. Raw events expire after 13 months. Durable daily
+          aggregates require at least five distinct anonymous donor tags.
+          Estimated fan-outs never enter observed-query aggregates.
         </p>
       </section>
 

@@ -1,7 +1,7 @@
 # Security policy
 
-Please report vulnerabilities through a private GitHub security advisory once
-the public repository is available. Do not open a public issue for credential
+Please report vulnerabilities to `security@openqueries.org` or through a
+private GitHub security advisory. Do not open a public issue for credential
 exposure, privacy-boundary bypasses or donation-deletion failures.
 
 High-priority reports include:

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { learnArticles } from "@/lib/learn";
 import { absoluteUrl } from "@/lib/site";
+import { topicPages } from "@/lib/topics";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const updated = new Date("2026-08-09T00:00:00.000Z");
@@ -48,6 +49,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.4,
     },
+    {
+      url: absoluteUrl("/support"),
+      lastModified: updated,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: absoluteUrl("/security"),
+      lastModified: updated,
+      changeFrequency: "yearly",
+      priority: 0.4,
+    },
+    ...topicPages.map((topic) => ({
+      url: absoluteUrl(`/${topic.slug}`),
+      lastModified: updated,
+      changeFrequency: "monthly" as const,
+      priority: 0.75,
+    })),
     ...learnArticles.map((article) => ({
       url: absoluteUrl(`/learn/${article.slug}`),
       lastModified: new Date(`${article.publishedAt}T00:00:00.000Z`),

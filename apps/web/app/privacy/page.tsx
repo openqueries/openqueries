@@ -29,10 +29,11 @@ export default function PrivacyPage() {
       <section>
         <h2>What can be donated</h2>
         <p>
-          After the first-run notice is acknowledged with donation enabled, safe
-          observed queries can be sent with a random pseudonymous installation
-          tag. For Google Search, the typed search query is included as the
-          clearly disclosed exception. Donation can be switched off at any time.
+          Query contribution starts off. If it is enabled during onboarding or
+          later in Settings, safe observed queries can be sent with a random
+          pseudonymous installation tag. For Google Search, the typed search
+          query is included as the clearly disclosed exception. Contribution can
+          be stopped and deleted at any time.
         </p>
       </section>
       <section>
@@ -51,7 +52,9 @@ export default function PrivacyPage() {
           Queries matching common email, phone, payment-card, access-token,
           private-key or high-entropy secret patterns are blocked from donation.
           Requested fan-out generation sends the selected safe query to the
-          corresponding model provider and to Google for scoring.
+          corresponding model provider for provider-native estimation. Open
+          Queries never sends one provider's candidates to a universal GPT
+          ranker.
         </p>
         <p>
           Raw donation events expire after 13 months. Anonymous daily aggregates
@@ -73,8 +76,9 @@ export default function PrivacyPage() {
       <section>
         <h2>Contact and changes</h2>
         <p>
-          Privacy questions and deletion failures can be reported through the
-          public repository until a dedicated project address is published.
+          Open Queries Contributors operates this first public release. Privacy
+          questions and deletion failures can be sent to{" "}
+          <a href="mailto:privacy@openqueries.org">privacy@openqueries.org</a>.
           Material policy changes will receive a new effective date and a
           release note.
         </p>

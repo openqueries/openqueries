@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ProviderLogo } from "@openqueries/provider-icons";
+import { OpenQueriesMark, ProviderLogo } from "@openqueries/provider-icons";
 import type { SimpleIcon } from "simple-icons";
 import { siGithub, siGooglechrome } from "simple-icons";
 
@@ -36,7 +36,7 @@ export function Brand() {
   return (
     <Link className="brand" href="/">
       <span className="brand-mark">
-        <Activity size={16} strokeWidth={2.25} />
+        <OpenQueriesMark size={17} />
       </span>
       <span>Open Queries</span>
     </Link>
@@ -76,6 +76,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
           <Link href="/methodology">Methodology</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
+          <Link href="/support">Support</Link>
+          <Link href="/security">Security</Link>
           <Link href="/open-source">Open source</Link>
           <a href="https://github.com/openqueries/openqueries">GitHub</a>
         </div>
@@ -102,7 +104,7 @@ export function QueryInterface() {
       <div className="interface-top">
         <div>
           <span className="interface-logo">
-            <Activity size={15} />
+            <OpenQueriesMark size={16} />
           </span>
           <strong>Open Queries</strong>
         </div>

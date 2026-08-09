@@ -16,7 +16,7 @@ export async function createInitialState(): Promise<ExtensionState> {
   const deletionSecret = randomHex();
   return {
     schemaVersion: 1,
-    donationEnabled: true,
+    donationEnabled: false,
     onboardingAcknowledged: false,
     deletionSecret,
     donorTag: await sha256Hex(deletionSecret),

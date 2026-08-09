@@ -12,7 +12,7 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
-import { ProviderLogo } from "@openqueries/provider-icons";
+import { OpenQueriesMark, ProviderLogo } from "@openqueries/provider-icons";
 
 import type {
   LocalQueryEvent,
@@ -291,7 +291,7 @@ export default function SidePanel() {
           rel="noreferrer"
         >
           <span className="brand-mark">
-            <Activity size={16} />
+            <OpenQueriesMark size={17} />
           </span>
           <span>Open Queries</span>
         </a>

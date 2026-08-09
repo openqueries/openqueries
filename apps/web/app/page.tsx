@@ -7,11 +7,17 @@ import { siGithub, siGooglechrome } from "simple-icons";
 import { BrandIcon, QueryInterface, SiteShell } from "./components";
 import { StructuredData } from "./structured-data";
 import { learnArticles } from "@/lib/learn";
-import { absoluteUrl, DEFAULT_DESCRIPTION, pageMetadata } from "@/lib/site";
+import {
+  absoluteUrl,
+  CHROME_WEB_STORE_URL,
+  DEFAULT_DESCRIPTION,
+  GITHUB_URL,
+  pageMetadata,
+} from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
   path: "/",
-  title: "Open Queries — Make AI search transparent",
+  title: "Open Queries — AI Search Query Inspector",
   description: DEFAULT_DESCRIPTION,
 });
 
@@ -56,19 +62,23 @@ export default function HomePage() {
           description: DEFAULT_DESCRIPTION,
           url: absoluteUrl("/"),
           license: "https://www.gnu.org/licenses/agpl-3.0.html",
+          sameAs: [
+            GITHUB_URL,
+            ...(CHROME_WEB_STORE_URL ? [CHROME_WEB_STORE_URL] : []),
+          ],
         }}
       />
 
       <section className="hero container">
         <div className="hero-copy">
           <p className="status-label">
-            <i /> Open source · Chrome beta
+            <i /> Open-source Chrome extension
           </p>
-          <h1>See what AI actually searches.</h1>
+          <h1>See the queries behind AI search.</h1>
           <p className="hero-deck">
-            A transparent query trace for AI search. Inspect surfaced web
-            searches, explore likely fan-outs and contribute to an open query
-            history—without collecting conversations.
+            Open Queries shows the web-search queries surfaced by ChatGPT,
+            Claude and Google AI Overviews in a local Chrome side panel—and
+            estimates likely fan-out queries only when you ask.
           </p>
           <div className="hero-actions">
             <Link className="button primary" href="/install">
@@ -144,7 +154,7 @@ export default function HomePage() {
         <ul>
           {[
             "No chat messages, titles, account identity or conversation URLs",
-            "Donation is controllable, reversible and deletable by installation",
+            "Query contribution is separate, optional and off until you choose it",
             "Sensitive-pattern filtering runs locally and at the Worker edge",
             "Public aggregates require at least five anonymous donors",
             "Estimated fan-outs never enter observed-query aggregates",

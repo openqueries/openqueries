@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Activity, Check, ExternalLink, ShieldCheck } from "lucide-react";
+import { Check, ExternalLink, ShieldCheck } from "lucide-react";
+import { OpenQueriesMark } from "@openqueries/provider-icons";
 
 import type { RuntimeResponse } from "./lib/types";
 import "./style.css";
 
 export default function OptionsPage() {
-  const [donationEnabled, setDonationEnabled] = useState(true);
+  const [donationEnabled, setDonationEnabled] = useState(false);
   const [complete, setComplete] = useState(false);
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function OptionsPage() {
     <main className="onboarding-shell">
       <header className="onboarding-header">
         <span className="brand-mark">
-          <Activity size={16} />
+          <OpenQueriesMark size={17} />
         </span>
         <strong>Open Queries</strong>
         <a href="https://openqueries.org" target="_blank" rel="noreferrer">
@@ -41,21 +42,21 @@ export default function OptionsPage() {
       <section className="onboarding-card">
         <p className="eyebrow">Make AI search transparent</p>
         <h1>
-          See what the model searches.
+          See the queries behind AI search.
           <br />
-          Share only what matters.
+          Your messages stay out.
         </h1>
         <p className="onboarding-deck">
-          Open Queries records explicitly surfaced web-search queries from
-          ChatGPT and Claude, plus your clearly disclosed Google Search seed. It
-          never records chat messages.
+          Open Queries reads only the web-search queries shown by supported AI
+          services. They stay in your local side panel unless you choose to
+          contribute them.
         </p>
         <div className="privacy-contract">
           <div>
             <Check size={16} />
             <span>
-              <strong>Collected</strong>Observed web-search queries, platform,
-              time and language.
+              <strong>Kept locally</strong>Observed web-search queries,
+              platform, time and language.
             </span>
           </div>
           <div>
@@ -73,10 +74,10 @@ export default function OptionsPage() {
             onChange={(event) => setDonationEnabled(event.target.checked)}
           />
           <span>
-            <strong>Contribute observed queries</strong>
+            <strong>Help build the open AI query history</strong>
             <small>
-              On by default. Turn it off now or at any time in Settings. Raw
-              events expire after 13 months.
+              Share privacy-checked search queries—not chats. This is optional,
+              starts off and can be stopped or deleted at any time.
             </small>
           </span>
         </label>
@@ -94,7 +95,7 @@ export default function OptionsPage() {
           </button>
         )}
         <p className="legal-note">
-          Continuing acknowledges the data notice. Read the{" "}
+          Want the exact details? Read the{" "}
           <a
             href="https://openqueries.org/privacy"
             target="_blank"

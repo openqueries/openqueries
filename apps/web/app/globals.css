@@ -842,6 +842,67 @@ button {
   background: #fff;
 }
 
+.topic-provider {
+  margin: 0 0 30px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.related-links > div {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.related-links a {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.related-links a:hover {
+  border-color: #bbb7e3;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.contact-grid a {
+  min-height: 130px;
+  padding: 18px;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.contact-grid span {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
 .method-table > div {
   padding: 16px;
   display: grid;
@@ -890,6 +951,25 @@ button {
     500 12px/1.6 var(--font-mono),
     monospace;
   white-space: nowrap;
+}
+
+.display-math {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+  color: #3e34a0;
+  font-size: 14px;
+}
+
+.inline-math {
+  color: #34323e;
+  white-space: nowrap;
+}
+
+.display-math .katex-display {
+  margin: 0;
+  text-align: left;
 }
 
 .formula span {
@@ -1137,6 +1217,14 @@ button {
   .hero-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .related-links > div {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-grid {
+    grid-template-columns: 1fr;
   }
 
   .trust-strip .container {
