@@ -28,6 +28,38 @@ test("prunes local history after 30 days", () => {
   );
 });
 
+test("deduplicates the same rendered provider query after a page reload", () => {
+  const now = Date.parse("2026-08-09T17:30:00.000Z");
+  const base = {
+    schemaVersion: 1 as const,
+    platform: "chatgpt" as const,
+    sourceKind: "observed_model_search" as const,
+    query: "site:developer.chrome.com side panel API",
+    extensionVersion: "1.0.1",
+    adapterVersion: "1.0.1",
+    tabId: 42,
+  };
+  const pruned = pruneEvents(
+    [
+      {
+        ...base,
+        eventId: "newer",
+        capturedAt: "2026-08-09T17:29:00.000Z",
+      },
+      {
+        ...base,
+        eventId: "older",
+        capturedAt: "2026-08-09T17:28:00.000Z",
+      },
+    ],
+    now,
+  );
+  assert.deepEqual(
+    pruned.map((event) => event.eventId),
+    ["newer"],
+  );
+});
+
 test("starts query contribution off until the user chooses it", async () => {
   const state = await createInitialState();
   assert.equal(state.donationEnabled, false);

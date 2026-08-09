@@ -18,10 +18,11 @@ the corresponding provider rather than a universal GPT scorer.
 
 ## Product boundary
 
-- Captures only explicit search-tool UI on supported ChatGPT, Claude and Google
-  Search pages.
-- Never uses chat messages, titles, account identity or conversation URLs as a
-  fallback.
+- Captures only provider search-tool signals on supported ChatGPT, Claude and
+  Google Search pages: structured `search_queries` metadata where available,
+  otherwise explicit search UI.
+- Never emits or stores chat messages, titles, account identity or conversation
+  URLs; ordinary message fields are rejected rather than used as a fallback.
 - Keeps a 30-day trace in Chrome.
 - Generates likely fan-outs only after a user request.
 - Starts anonymous query contribution off; it remains a separate, optional

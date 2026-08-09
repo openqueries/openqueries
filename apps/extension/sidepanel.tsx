@@ -225,9 +225,15 @@ export default function SidePanel() {
 
   useEffect(() => {
     void load();
-    const listener = () => void load();
-    chrome.storage.onChanged.addListener(listener);
-    return () => chrome.storage.onChanged.removeListener(listener);
+    const reload = () => void load();
+    chrome.storage.onChanged.addListener(reload);
+    chrome.tabs.onActivated.addListener(reload);
+    chrome.windows.onFocusChanged.addListener(reload);
+    return () => {
+      chrome.storage.onChanged.removeListener(reload);
+      chrome.tabs.onActivated.removeListener(reload);
+      chrome.windows.onFocusChanged.removeListener(reload);
+    };
   }, [load]);
 
   const events = useMemo(() => {

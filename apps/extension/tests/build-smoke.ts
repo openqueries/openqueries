@@ -17,12 +17,15 @@ async function main() {
   };
 
   assert.equal(manifest.name, "Open Queries – AI Search Query Inspector");
-  assert.equal(manifest.version, "1.0.0");
+  assert.equal(manifest.version, "1.0.1");
   assert.equal(
     manifest.description,
     "See ChatGPT, Claude and Google AI search queries in a local side panel, then inspect likely fan-out queries on demand.",
   );
-  assert.deepEqual(manifest.host_permissions, ["https://openqueries.org/*"]);
+  assert.deepEqual(manifest.host_permissions, [
+    "https://chatgpt.com/*",
+    "https://openqueries.org/*",
+  ]);
 
   assert.equal(
     manifest.side_panel?.default_path,
@@ -45,7 +48,7 @@ async function main() {
 
   const chromeMock = {
     runtime: {
-      getManifest: () => ({ version: "1.0.0" }),
+      getManifest: () => ({ version: "1.0.1" }),
       onInstalled: {
         addListener: (listener: (details: { reason: string }) => void) =>
           installedListeners.push(listener),
@@ -68,6 +71,9 @@ async function main() {
         get: async () => ({}),
         set: async () => undefined,
       },
+    },
+    scripting: {
+      registerContentScripts: async () => undefined,
     },
   };
 

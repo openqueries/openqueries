@@ -68,20 +68,28 @@ async function addObservation(
   sender: chrome.runtime.MessageSender,
 ): Promise<void> {
   let state = await readState();
-  if (
-    state.events.some((event) => event.eventId === request.observation.eventId)
-  )
-    return;
   const query = normalizeQuery(request.observation.query);
   if (!query) return;
+  const tabId = sender.tab?.id ?? null;
+  if (
+    state.events.some(
+      (event) =>
+        event.eventId === request.observation.eventId ||
+        (event.tabId === tabId &&
+          event.platform === request.observation.platform &&
+          event.sourceKind === request.observation.sourceKind &&
+          event.query.toLocaleLowerCase() === query.toLocaleLowerCase()),
+    )
+  )
+    return;
   const safety = querySafety(query);
   const event: LocalQueryEvent = {
     schemaVersion: 1,
     ...request.observation,
     query,
     extensionVersion: manifestVersion,
-    adapterVersion: "1.0.0",
-    tabId: sender.tab?.id ?? null,
+    adapterVersion: "1.0.1",
+    tabId,
     donationBlockedReason: safety.safe ? undefined : safety.reason,
   };
   state = { ...state, events: [event, ...state.events] };

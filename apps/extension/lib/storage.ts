@@ -29,12 +29,19 @@ export function pruneEvents(
   now = Date.now(),
 ): LocalQueryEvent[] {
   const cutoff = now - RETENTION_MS;
+  const seen = new Set<string>();
   return events
     .filter((event) => Date.parse(event.capturedAt) >= cutoff)
     .sort(
       (left, right) =>
         Date.parse(right.capturedAt) - Date.parse(left.capturedAt),
     )
+    .filter((event) => {
+      const key = `${event.tabId}|${event.platform}|${event.sourceKind}|${event.query.toLocaleLowerCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
     .slice(0, MAX_EVENTS);
 }
 

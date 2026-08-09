@@ -3,7 +3,7 @@
 Open Queries is one monorepo with four trust boundaries:
 
 ```text
-Provider UI
+Provider search-tool signal
   -> fail-closed, provider-specific Plasmo adapter
   -> Chrome side panel + 30-day local history
        -> optional observed-query donation -> Queue -> D1 raw events
@@ -23,6 +23,15 @@ The extension contract contains a query, evidence class, platform, timestamp,
 language/locale and adapter versions. Chat messages, conversation identifiers,
 chat URLs, titles and account identity have no schema fields. Zod objects are
 strict so adding those fields fails validation.
+
+ChatGPT exposes search queries in structured `search_queries` metadata even
+when its interface renders only a website count. A document-start, main-world
+adapter clones only ChatGPT conversation transport responses, walks only
+explicit search-metadata/tool fields and posts query strings to the isolated
+extension context. Ordinary `query` fields and message content are rejected and
+never cross that boundary. Claude and Google adapters read explicit search UI.
+All processing happens locally unless the user separately requests fan-outs or
+enables query contribution.
 
 Sensitive-pattern checks run before donation and again at the Worker. Unsafe
 queries stay local and cannot be sent for fan-out estimation. Old local V1
