@@ -4,7 +4,7 @@ import type {
 } from "@openqueries/contracts";
 import { normalizeQuery, querySafety } from "@openqueries/query-core";
 
-import { deleteDonations, donateEvents, estimateFanOuts } from "./lib/api";
+import { deleteDonations, donateEvent, estimateFanOuts } from "./lib/api";
 import {
   readState,
   rotateDonor,
@@ -36,35 +36,32 @@ async function activeTabId(): Promise<number | null> {
   return tab?.id ?? null;
 }
 
-async function flushDonations(state: ExtensionState): Promise<ExtensionState> {
-  if (!state.donationEnabled || !state.onboardingAcknowledged) return state;
-  let next = state;
-  while (true) {
-    const pending = next.events
-      .filter((event) => !event.uploadedAt && !event.donationBlockedReason)
-      .slice(0, 50);
-    if (!pending.length) return next;
-    const payload = pending.map(
-      ({
-        tabId: _tabId,
-        uploadedAt: _uploadedAt,
-        donationBlockedReason: _reason,
-        fanOuts: _fanOuts,
-        fanOutGeneratedAt: _generatedAt,
-        ...event
-      }) => event,
-    );
-    await donateEvents(next.donorTag, payload);
-    const uploaded = new Set(pending.map((event) => event.eventId));
-    const uploadedAt = new Date().toISOString();
-    next = {
-      ...next,
-      events: next.events.map((event) =>
-        uploaded.has(event.eventId) ? { ...event, uploadedAt } : event,
-      ),
-    };
-    await writeState(next);
-  }
+async function donateObservation(
+  state: ExtensionState,
+  event: LocalQueryEvent,
+): Promise<ExtensionState> {
+  if (
+    !state.donationEnabled ||
+    !state.onboardingAcknowledged ||
+    event.donationBlockedReason
+  )
+    return state;
+  const {
+    tabId: _tabId,
+    uploadedAt: _uploadedAt,
+    donationBlockedReason: _reason,
+    fanOuts: _fanOuts,
+    fanOutGeneratedAt: _generatedAt,
+    ...observation
+  } = event;
+  await donateEvent(state.donorTag, observation);
+  const uploadedAt = new Date().toISOString();
+  return {
+    ...state,
+    events: state.events.map((item) =>
+      item.eventId === event.eventId ? { ...item, uploadedAt } : item,
+    ),
+  };
 }
 
 async function addObservation(
@@ -99,10 +96,10 @@ async function addObservation(
   state = { ...state, events: [event, ...state.events] };
   await writeState(state);
   try {
-    state = await flushDonations(state);
+    state = await donateObservation(state, event);
     await writeState(state);
   } catch {
-    // Keep the event locally. A later event or explicit retry flushes the queue.
+    // A failed contribution never removes the local observation.
   }
 }
 
@@ -175,18 +172,8 @@ async function handleRequest(
             : item,
         ),
       };
-    } else if (request.type === "openqueries:flush-donations") {
-      state = await flushDonations(state);
     }
     await writeState(state);
-    if (state.donationEnabled && state.onboardingAcknowledged) {
-      try {
-        state = await flushDonations(state);
-        await writeState(state);
-      } catch {
-        // Local history remains the durable retry source.
-      }
-    }
     return { ok: true, state: toPublicState(state, await activeTabId()) };
   } catch (error) {
     return {

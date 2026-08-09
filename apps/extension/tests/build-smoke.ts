@@ -46,31 +46,9 @@ async function main() {
   const installedListeners: Array<(details: { reason: string }) => void> = [];
   const messageListeners: unknown[] = [];
   const eventId = "estimate-while-contribution-off";
+  const selectedEventId = "selected-for-expansion";
+  const unselectedEventId = "unselected-observation";
   const stateKey = "openqueries:state:v1";
-  const observedEvents = [
-    {
-      schemaVersion: 1,
-      eventId,
-      platform: "chatgpt",
-      sourceKind: "observed_model_search",
-      query: "site:example.org evidence",
-      capturedAt: "2026-08-09T12:00:00.000Z",
-      extensionVersion: "1.0.1",
-      adapterVersion: "1.0.1",
-      tabId: 1,
-    },
-    ...Array.from({ length: 50 }, (_, index) => ({
-      schemaVersion: 1,
-      eventId: `unselected-${String(index).padStart(2, "0")}`,
-      platform: "claude",
-      sourceKind: "observed_model_search",
-      query: `unselected observed query ${index + 1}`,
-      capturedAt: "2026-08-09T11:59:00.000Z",
-      extensionVersion: "1.0.1",
-      adapterVersion: "1.0.1",
-      tabId: 2,
-    })),
-  ];
   const stored: Record<string, unknown> = {
     [stateKey]: {
       schemaVersion: 1,
@@ -78,7 +56,19 @@ async function main() {
       onboardingAcknowledged: false,
       deletionSecret: "a".repeat(64),
       donorTag: "b".repeat(64),
-      events: observedEvents,
+      events: [
+        {
+          schemaVersion: 1,
+          eventId,
+          platform: "chatgpt",
+          sourceKind: "observed_model_search",
+          query: "site:example.org evidence",
+          capturedAt: "2026-08-09T12:00:00.000Z",
+          extensionVersion: "1.0.1",
+          adapterVersion: "1.0.1",
+          tabId: 1,
+        },
+      ],
     },
   };
   const fetchCalls: Array<{ url: string; body?: string }> = [];
@@ -178,10 +168,10 @@ async function main() {
     sender: unknown,
     sendResponse: (response: unknown) => void,
   ) => boolean;
-  const send = (request: unknown) =>
+  const send = (request: unknown, sender: unknown = {}) =>
     new Promise<Record<string, unknown>>((resolve) => {
       assert.equal(
-        listener(request, {}, (response) =>
+        listener(request, sender, (response) =>
           resolve(response as Record<string, unknown>),
         ),
         true,
@@ -210,6 +200,30 @@ async function main() {
   };
   assert.equal(publicState.donationEnabled, true);
   assert.equal(publicState.onboardingAcknowledged, true);
+  assert.equal(fetchCalls.length, 0, "pre-consent history stays local");
+
+  for (const observation of [
+    {
+      eventId: unselectedEventId,
+      platform: "claude",
+      sourceKind: "observed_model_search",
+      query: "unselected observed query",
+      capturedAt: "2026-08-09T12:01:00.000Z",
+    },
+    {
+      eventId: selectedEventId,
+      platform: "chatgpt",
+      sourceKind: "observed_model_search",
+      query: "site:example.org selected evidence",
+      capturedAt: "2026-08-09T12:02:00.000Z",
+    },
+  ]) {
+    const observationResponse = await send(
+      { type: "openqueries:observation", observation },
+      { tab: { id: 2 } },
+    );
+    assert.equal(observationResponse.ok, true);
+  }
   const donationCalls = fetchCalls.filter(({ url }) =>
     url.endsWith("/api/v1/events"),
   );
@@ -218,17 +232,19 @@ async function main() {
     assert.ok(body);
     return (JSON.parse(body) as { events: Array<{ eventId: string }> }).events;
   });
-  assert.equal(donatedEvents.length, observedEvents.length);
+  assert.ok(
+    donationCalls.every(
+      ({ body }) => body && JSON.parse(body).events.length === 1,
+    ),
+  );
   assert.deepEqual(
     new Set(donatedEvents.map(({ eventId: donatedEventId }) => donatedEventId)),
-    new Set(
-      observedEvents.map(({ eventId: observedEventId }) => observedEventId),
-    ),
+    new Set([unselectedEventId, selectedEventId]),
   );
 
   const estimateResponse = await send({
     type: "openqueries:estimate-fan-outs",
-    eventId,
+    eventId: selectedEventId,
   });
   assert.equal(estimateResponse.ok, true);
   const fanOutCalls = fetchCalls.filter(({ url }) =>
@@ -238,11 +254,11 @@ async function main() {
   assert.equal(
     (JSON.parse(fanOutCalls[0]?.body ?? "{}") as { seed?: { query?: string } })
       .seed?.query,
-    "site:example.org evidence",
+    "site:example.org selected evidence",
   );
 
   console.log(
-    "Production MV3 worker donates every eligible observation and gates estimates on accepted contribution.",
+    "Production MV3 worker immediately donates each eligible observation and gates estimates on accepted contribution.",
   );
 }
 

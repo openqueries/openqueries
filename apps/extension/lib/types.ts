@@ -44,8 +44,7 @@ export type RuntimeRequest =
   | { type: "openqueries:acknowledge-onboarding"; donationEnabled: boolean }
   | { type: "openqueries:clear-local-history" }
   | { type: "openqueries:delete-donations" }
-  | { type: "openqueries:estimate-fan-outs"; eventId: string }
-  | { type: "openqueries:flush-donations" };
+  | { type: "openqueries:estimate-fan-outs"; eventId: string };
 
 export type RuntimeResponse =
   { ok: true; state?: PublicState } | { ok: false; error: string };

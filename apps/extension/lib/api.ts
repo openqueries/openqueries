@@ -125,11 +125,11 @@ async function apiFetch(path: string, init: RequestInit): Promise<Response> {
   return response;
 }
 
-export async function donateEvents(
+export async function donateEvent(
   donorTag: string,
-  events: QueryObservationV1[],
+  event: QueryObservationV1,
 ): Promise<void> {
-  const body: DonationBatchV1 = { schemaVersion: 1, donorTag, events };
+  const body: DonationBatchV1 = { schemaVersion: 1, donorTag, events: [event] };
   await apiFetch("/api/v1/events", {
     method: "POST",
     body: JSON.stringify(body),
