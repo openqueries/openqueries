@@ -141,10 +141,12 @@ export default function MethodologyPage() {
         </p>
         <p>
           Query contribution starts off and is controllable during onboarding
-          and in Settings. Fan-out estimation is available only while that
-          contribution is enabled. Raw events expire after 13 months. Durable
-          daily aggregates require at least five distinct anonymous donor tags.
-          Estimated fan-outs never enter observed-query aggregates.
+          and in Settings. While enabled, every eligible observed query is
+          automatically contributed, whether or not its fan-outs are requested.
+          Fan-out estimation is available only while that contribution is
+          enabled. Raw events expire after 13 months. Durable daily aggregates
+          require at least five distinct anonymous donor tags. Estimated
+          fan-outs never enter observed-query aggregates.
         </p>
       </section>
 

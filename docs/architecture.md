@@ -6,7 +6,7 @@ Open Queries is one monorepo with four trust boundaries:
 Provider search-tool signal
   -> fail-closed, provider-specific Plasmo adapter
   -> Chrome side panel + 30-day local history
-       -> accepted observed-query contribution -> Queue -> D1 raw events
+       -> every eligible observation while contribution is enabled -> Queue -> D1 raw events
        -> contribution enabled + explicit fan-out request -> Cloudflare Worker
             -> ChatGPT: gpt-5.6-luna structured output + native token logprobs
             -> Google: gemini-3.1-flash-lite, 16 native samples + Wilson interval

@@ -76,9 +76,9 @@ export default function OptionsPage() {
           <span>
             <strong>Help build the open AI query history</strong>
             <small>
-              Share privacy-checked search queries—not chats—and unlock fan-out
-              estimates. Contribution starts off and can be stopped or deleted
-              at any time.
+              Automatically share every privacy-checked search query—not
+              chats—and unlock fan-out estimates. Contribution starts off and
+              can be stopped or deleted at any time.
             </small>
           </span>
         </label>

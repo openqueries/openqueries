@@ -57,7 +57,7 @@ test("methodology never treats estimated fan-outs as observed demand", () => {
   const method = read("app/methodology/page.tsx");
   assert.match(
     method,
-    /Estimated fan-outs never enter\s+observed-query aggregates/u,
+    /Estimated\s+fan-outs never enter\s+observed-query aggregates/u,
   );
   assert.match(method, /not search\s+volume/u);
   assert.match(method, /GPT-5\.6 Luna/u);

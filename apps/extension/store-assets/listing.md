@@ -20,7 +20,7 @@ WHAT YOU CAN INSPECT
 
 LOCAL BY DEFAULT
 
-Your 30-day query trace stays in Chrome and remains available when contribution is off. Query contribution starts off; enabling it shares privacy-checked observed queries and unlocks fan-out estimates. Open Queries does not collect chat messages, conversation titles, account identity or conversation URLs.
+Your 30-day query trace stays in Chrome and remains available when contribution is off. Query contribution starts off; while enabled, every eligible observed query is automatically contributed and fan-out estimates are unlocked. Open Queries does not collect chat messages, conversation titles, account identity or conversation URLs.
 
 PROVIDER-NATIVE METHODOLOGY
 
@@ -90,6 +90,6 @@ No remote code is used. All executable extension code is included in the submitt
 - Website content: explicit web-search query text exposed by a supported provider's search tool.
 - Local processing: enabled automatically for the side-panel trace.
 - Transfer for fan-outs: while contribution is enabled, one selected query is sent only after the user clicks “Estimate fan-outs”.
-- Contribution: privacy-checked observed queries are donated only after the user enables the control; it starts off, local capture remains available, and fan-out estimates stay locked until it is enabled.
+- Contribution: after the user enables the control, every eligible observed query is automatically donated, whether or not its fan-outs are requested. It starts off, local capture remains available, and fan-out estimates stay locked until it is enabled.
 - Not collected: chat messages, conversation titles, account identity, browsing history outside the supported search surfaces or conversation URLs.
 - Not sold, used for advertising, used for credit decisions or combined with unrelated personal data.

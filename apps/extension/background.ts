@@ -38,29 +38,33 @@ async function activeTabId(): Promise<number | null> {
 
 async function flushDonations(state: ExtensionState): Promise<ExtensionState> {
   if (!state.donationEnabled || !state.onboardingAcknowledged) return state;
-  const pending = state.events
-    .filter((event) => !event.uploadedAt && !event.donationBlockedReason)
-    .slice(0, 50);
-  if (!pending.length) return state;
-  const payload = pending.map(
-    ({
-      tabId: _tabId,
-      uploadedAt: _uploadedAt,
-      donationBlockedReason: _reason,
-      fanOuts: _fanOuts,
-      fanOutGeneratedAt: _generatedAt,
-      ...event
-    }) => event,
-  );
-  await donateEvents(state.donorTag, payload);
-  const uploaded = new Set(pending.map((event) => event.eventId));
-  const uploadedAt = new Date().toISOString();
-  return {
-    ...state,
-    events: state.events.map((event) =>
-      uploaded.has(event.eventId) ? { ...event, uploadedAt } : event,
-    ),
-  };
+  let next = state;
+  while (true) {
+    const pending = next.events
+      .filter((event) => !event.uploadedAt && !event.donationBlockedReason)
+      .slice(0, 50);
+    if (!pending.length) return next;
+    const payload = pending.map(
+      ({
+        tabId: _tabId,
+        uploadedAt: _uploadedAt,
+        donationBlockedReason: _reason,
+        fanOuts: _fanOuts,
+        fanOutGeneratedAt: _generatedAt,
+        ...event
+      }) => event,
+    );
+    await donateEvents(next.donorTag, payload);
+    const uploaded = new Set(pending.map((event) => event.eventId));
+    const uploadedAt = new Date().toISOString();
+    next = {
+      ...next,
+      events: next.events.map((event) =>
+        uploaded.has(event.eventId) ? { ...event, uploadedAt } : event,
+      ),
+    };
+    await writeState(next);
+  }
 }
 
 async function addObservation(

@@ -30,12 +30,13 @@ export default function PrivacyPage() {
         <h2>What can be donated</h2>
         <p>
           Query contribution starts off. If it is enabled during onboarding or
-          later in Settings, safe observed queries can be sent with a random
-          pseudonymous installation tag. For Google Search, the typed search
-          query is included as the clearly disclosed exception. Local capture
-          remains available without contribution; fan-out estimates are
-          available only while contribution is enabled. Contribution can be
-          stopped and deleted at any time.
+          later in Settings, every eligible observed query is automatically sent
+          with a random pseudonymous installation tag, whether or not its
+          fan-outs are requested. For Google Search, the typed search query is
+          included as the clearly disclosed exception. Local capture remains
+          available without contribution; fan-out estimates are available only
+          while contribution is enabled. Contribution can be stopped and deleted
+          at any time.
         </p>
       </section>
       <section>

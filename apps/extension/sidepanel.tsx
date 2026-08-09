@@ -391,9 +391,9 @@ export default function SidePanel() {
               <div>
                 <strong>Donate observed queries</strong>
                 <span>
-                  Contribute model web searches and the disclosed Google Search
-                  exception. Fan-out estimates are available while contribution
-                  is enabled.
+                  Automatically contribute every eligible model web search and
+                  the disclosed Google Search exception. Fan-out estimates are
+                  available while contribution is enabled.
                 </span>
               </div>
               <button

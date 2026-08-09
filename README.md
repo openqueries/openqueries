@@ -27,7 +27,8 @@ the corresponding provider rather than a universal GPT scorer.
 - Generates likely fan-outs only after a user request and while query
   contribution is enabled.
 - Starts anonymous query contribution off. Local capture remains available
-  without it; enabling contribution unlocks fan-out estimates.
+  without it; while enabled, every eligible observed query is automatically
+  contributed and fan-out estimates are unlocked.
 - Never mixes estimated fan-outs into observed-query aggregates.
 
 ## Provider-native estimation
