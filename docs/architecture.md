@@ -55,8 +55,10 @@ already queued event cannot reappear after deletion.
 Before the first production deployment:
 
 1. Create `openqueries-db`, `openqueries-donations` and
-   `openqueries-donations-dlq` in the target Cloudflare account.
-2. Replace the placeholder D1 `database_id` in `apps/web/wrangler.jsonc`.
+   `openqueries-donations-dlq` in the target Cloudflare account. The initial
+   resources were provisioned in the EU jurisdiction on 2026-08-09.
+2. Keep the provisioned D1 `database_id` in `apps/web/wrangler.jsonc`; use a
+   separate database and environment before introducing a staging split.
 3. Add `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` and `GEMINI_API_KEY` with
    `wrangler secret put` from `apps/web`.
 4. Set `ALLOWED_EXTENSION_IDS` to the stable Chrome extension ID.

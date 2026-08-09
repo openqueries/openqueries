@@ -15,7 +15,7 @@
     {
       "binding": "DB",
       "database_name": "openqueries-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "b70b2bf1-d737-4e6b-aab0-dde704d0232c",
       "migrations_dir": "drizzle",
     },
   ],
