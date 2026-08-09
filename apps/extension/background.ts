@@ -135,6 +135,10 @@ async function handleRequest(
       await deleteDonations(state.deletionSecret);
       state = await rotateDonor(state);
     } else if (request.type === "openqueries:estimate-fan-outs") {
+      if (!state.donationEnabled || !state.onboardingAcknowledged)
+        throw new Error(
+          "Enable query contribution in Settings to use fan-out estimates.",
+        );
       const event = state.events.find(
         (item) => item.eventId === request.eventId,
       );

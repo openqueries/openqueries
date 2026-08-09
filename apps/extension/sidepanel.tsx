@@ -119,10 +119,12 @@ function QueryCard({
   event,
   onEstimate,
   loading,
+  contributionEnabled,
 }: {
   event: LocalQueryEvent;
   onEstimate: (eventId: string) => void;
   loading: boolean;
+  contributionEnabled: boolean;
 }) {
   const [expanded, setExpanded] = useState(Boolean(event.fanOuts?.length));
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -163,10 +165,19 @@ function QueryCard({
       {event.donationBlockedReason ? (
         <p className="privacy-note">Kept local · possible sensitive data</p>
       ) : null}
+      {!contributionEnabled ? (
+        <p className="privacy-note">
+          Enable query contribution in Settings to use fan-out estimates.
+        </p>
+      ) : null}
       <div className="query-actions">
         <button
           className="estimate-button"
-          disabled={loading || Boolean(event.donationBlockedReason)}
+          disabled={
+            loading ||
+            !contributionEnabled ||
+            Boolean(event.donationBlockedReason)
+          }
           onClick={() => onEstimate(event.eventId)}
         >
           {loading ? (
@@ -176,11 +187,13 @@ function QueryCard({
           )}
           {loading
             ? `${platformLabel(event.platform)} · ${elapsedSeconds}s`
-            : event.fanOuts?.length
-              ? "Refresh estimates"
-              : "Estimate fan-outs"}
+            : !contributionEnabled
+              ? "Contribution required"
+              : event.fanOuts?.length
+                ? "Refresh estimates"
+                : "Estimate fan-outs"}
         </button>
-        {event.fanOuts?.length ? (
+        {contributionEnabled && event.fanOuts?.length ? (
           <button
             className="icon-button"
             aria-label={expanded ? "Collapse fan-outs" : "Expand fan-outs"}
@@ -190,7 +203,7 @@ function QueryCard({
           </button>
         ) : null}
       </div>
-      {expanded && event.fanOuts?.length ? (
+      {contributionEnabled && expanded && event.fanOuts?.length ? (
         <div className="fanout-list">
           <div className="fanout-heading">
             <span>Estimated fan-outs</span>
@@ -379,7 +392,8 @@ export default function SidePanel() {
                 <strong>Donate observed queries</strong>
                 <span>
                   Contribute model web searches and the disclosed Google Search
-                  exception. Fan-out estimates work either way.
+                  exception. Fan-out estimates are available while contribution
+                  is enabled.
                 </span>
               </div>
               <button
@@ -449,6 +463,9 @@ export default function SidePanel() {
                 key={event.eventId}
                 event={event}
                 loading={loadingId === event.eventId}
+                contributionEnabled={Boolean(
+                  state?.donationEnabled && state.onboardingAcknowledged,
+                )}
                 onEstimate={(id) => void estimate(id)}
               />
             ))}

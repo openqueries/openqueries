@@ -170,13 +170,16 @@ async function main() {
       );
     });
 
-  const estimateResponse = await send({
+  const blockedEstimateResponse = await send({
     type: "openqueries:estimate-fan-outs",
     eventId,
   });
-  assert.equal(estimateResponse.ok, true);
-  assert.equal(fetchCalls.length, 1);
-  assert.match(fetchCalls[0] ?? "", /\/api\/v2\/fan-outs$/u);
+  assert.equal(blockedEstimateResponse.ok, false);
+  assert.match(
+    String(blockedEstimateResponse.error),
+    /Enable query contribution/u,
+  );
+  assert.equal(fetchCalls.length, 0);
 
   const donationResponse = await send({
     type: "openqueries:set-donation",
@@ -190,8 +193,16 @@ async function main() {
   assert.equal(publicState.donationEnabled, true);
   assert.equal(publicState.onboardingAcknowledged, true);
 
+  const estimateResponse = await send({
+    type: "openqueries:estimate-fan-outs",
+    eventId,
+  });
+  assert.equal(estimateResponse.ok, true);
+  assert.equal(fetchCalls.length, 2);
+  assert.match(fetchCalls[1] ?? "", /\/api\/v2\/fan-outs$/u);
+
   console.log(
-    "Production MV3 worker booted; estimates remain independent of contribution.",
+    "Production MV3 worker gates estimates on accepted contribution.",
   );
 }
 
