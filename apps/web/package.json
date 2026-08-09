@@ -14,7 +14,7 @@
     "deploy:dry-run": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
     "test": "tsx --test tests/*.test.ts && node --test tests/*.test.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "pnpm cf-typegen && tsc --noEmit"
   },
   "dependencies": {
     "@openqueries/contracts": "workspace:*",
