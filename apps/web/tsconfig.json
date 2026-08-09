@@ -8,6 +8,9 @@
     "paths": {
       "@/*": ["./*"],
       "@openqueries/contracts": ["../../packages/contracts/src/index.ts"],
+      "@openqueries/provider-icons": [
+        "../../packages/provider-icons/src/index.tsx"
+      ],
       "@openqueries/query-core": ["../../packages/query-core/src/index.ts"]
     }
   },

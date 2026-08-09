@@ -12,6 +12,11 @@ test("publishes the mission, privacy boundary and open-source posture", () => {
   assert.match(home, /Queries, not conversations/u);
   assert.match(home, /AGPL-3\.0/u);
   assert.match(home, /Estimated stays|Observed stays observed/u);
+  assert.match(home, /ProviderLogo provider="chatgpt"/u);
+  assert.match(home, /ProviderLogo provider="claude"/u);
+  assert.match(home, /ProviderLogo provider="google"/u);
+  assert.doesNotMatch(home, /No universal GPT ranker/u);
+  assert.doesNotMatch(home, /className="method-preview"/u);
 });
 
 test("ships stable SEO, methodology and legal surfaces", () => {

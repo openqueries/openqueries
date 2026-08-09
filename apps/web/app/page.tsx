@@ -1,6 +1,7 @@
 import { ArrowRight, Check, Code2, Eye, Sigma } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ProviderLogo } from "@openqueries/provider-icons";
 import { siGithub, siGooglechrome } from "simple-icons";
 
 import { BrandIcon, QueryInterface, SiteShell } from "./components";
@@ -89,13 +90,27 @@ export default function HomePage() {
         <QueryInterface />
       </section>
 
-      <section className="trust-strip">
+      <section
+        className="trust-strip"
+        aria-label="Supported AI search surfaces"
+      >
         <div className="container">
-          <span>Supported now</span>
-          <strong>ChatGPT</strong>
-          <strong>Claude</strong>
-          <strong>Google AI Overviews</strong>
-          <em>Gemini surface next</em>
+          <span className="trust-label">Supported now</span>
+          <ul className="trust-providers">
+            <li>
+              <ProviderLogo provider="chatgpt" size={16} />
+              <strong>ChatGPT</strong>
+            </li>
+            <li>
+              <ProviderLogo provider="claude" size={16} />
+              <strong>Claude</strong>
+            </li>
+            <li>
+              <ProviderLogo provider="google" size={16} />
+              <strong>Google AI Overviews</strong>
+            </li>
+          </ul>
+          <span className="trust-next">Gemini surface next</span>
         </div>
       </section>
 
@@ -118,42 +133,6 @@ export default function HomePage() {
               <p>{copy}</p>
             </article>
           ))}
-        </div>
-      </section>
-
-      <section className="method-preview">
-        <div className="container method-preview-grid">
-          <div>
-            <p className="eyebrow">Provider-native methodology</p>
-            <h2>No universal GPT ranker.</h2>
-            <p>
-              OpenAI candidates are generated and scored by GPT-5.6 Luna’s own
-              output logprobs. The configured Gemini and Claude endpoints are
-              reported separately through repeated native samples because those
-              endpoints do not expose usable output logprobs.
-            </p>
-            <Link href="/methodology">
-              Read the methodology <ArrowRight size={15} />
-            </Link>
-          </div>
-          <div className="method-card">
-            <span>Provider-native evidence</span>
-            <code>p̂(q) = exp((1 / |Tq|) Σ log p(t))</code>
-            <dl>
-              <div>
-                <dt>OpenAI</dt>
-                <dd>gpt-5.6-luna · token logprobs</dd>
-              </div>
-              <div>
-                <dt>Google</dt>
-                <dd>gemini-3.1-flash-lite · 16 native samples</dd>
-              </div>
-              <div>
-                <dt>Anthropic</dt>
-                <dd>Claude Haiku 4.5 · 16 samples + Wilson CI</dd>
-              </div>
-            </dl>
-          </div>
         </div>
       </section>
 

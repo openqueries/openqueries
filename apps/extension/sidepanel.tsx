@@ -12,6 +12,7 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
+import { ProviderLogo } from "@openqueries/provider-icons";
 
 import type {
   LocalQueryEvent,
@@ -128,7 +129,7 @@ function QueryCard({
     <article className="query-card">
       <div className="query-card-head">
         <span className={`platform-mark ${event.platform}`}>
-          {platformLabel(event.platform).slice(0, 1)}
+          <ProviderLogo provider={event.platform} size={14} />
         </span>
         <div className="query-meta">
           <span>{platformLabel(event.platform)}</span>

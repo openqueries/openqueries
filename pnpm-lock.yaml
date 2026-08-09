@@ -23,6 +23,9 @@ importers:
       '@openqueries/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@openqueries/provider-icons':
+        specifier: workspace:*
+        version: link:../../packages/provider-icons
       '@openqueries/query-core':
         specifier: workspace:*
         version: link:../../packages/query-core
@@ -69,6 +72,9 @@ importers:
       '@openqueries/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@openqueries/provider-icons':
+        specifier: workspace:*
+        version: link:../../packages/provider-icons
       '@openqueries/query-core':
         specifier: workspace:*
         version: link:../../packages/query-core
@@ -146,6 +152,18 @@ importers:
       tsx:
         specifier: 4.23.11
         version: 4.23.11
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/provider-icons:
+    devDependencies:
+      '@types/react':
+        specifier: 19.2.14
+        version: 19.2.14
+      react:
+        specifier: 19.2.6
+        version: 19.2.6
       typescript:
         specifier: 5.9.3
         version: 5.9.3

@@ -184,24 +184,13 @@ a {
   border-radius: 7px;
   display: grid;
   place-items: center;
-  background: var(--surface);
-  font-size: 10px;
-  font-weight: 750;
+  background: #fff;
 }
 .platform-mark.chatgpt {
-  color: #12715b;
-  background: #eff8f5;
-  border-color: #d6ebe4;
+  color: #111113;
 }
-.platform-mark.claude {
-  color: #a24f2c;
-  background: #fcf4ef;
-  border-color: #f0dfd5;
-}
-.platform-mark.google {
-  color: #3769cf;
-  background: #f0f5ff;
-  border-color: #dae5fb;
+.platform-mark svg {
+  display: block;
 }
 .query-meta {
   min-width: 0;

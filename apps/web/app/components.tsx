@@ -8,8 +8,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ProviderLogo } from "@openqueries/provider-icons";
 import type { SimpleIcon } from "simple-icons";
-import { siAnthropic, siGithub, siGooglechrome } from "simple-icons";
+import { siGithub, siGooglechrome } from "simple-icons";
 
 export function BrandIcon({
   icon,
@@ -117,7 +118,7 @@ export function QueryInterface() {
       <article className="interface-query">
         <div className="query-source">
           <span>
-            <BrandIcon icon={siAnthropic} size={12} />
+            <ProviderLogo provider="claude" size={13} />
           </span>
           <strong>Claude</strong>
           <small>14:32</small>

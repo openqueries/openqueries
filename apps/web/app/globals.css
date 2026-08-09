@@ -468,15 +468,15 @@ button {
 
 .trust-strip .container {
   min-height: 66px;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: center;
-  gap: clamp(18px, 4vw, 48px);
+  gap: 36px;
   color: #4c4c52;
   font-size: 11px;
 }
 
-.trust-strip span {
+.trust-label {
   color: var(--faint);
   font:
     600 8px var(--font-mono),
@@ -485,13 +485,34 @@ button {
   text-transform: uppercase;
 }
 
-.trust-strip strong {
+.trust-providers {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(22px, 4vw, 48px);
+  list-style: none;
+}
+
+.trust-providers li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.trust-providers svg {
+  flex: 0 0 auto;
+}
+
+.trust-providers strong {
   font-weight: 600;
 }
 
-.trust-strip em {
+.trust-next {
   color: var(--faint);
-  font-style: normal;
+  white-space: nowrap;
 }
 
 .eyebrow {
@@ -505,7 +526,6 @@ button {
 }
 
 .section-heading h2,
-.method-preview h2,
 .privacy-section h2,
 .closing-cta h2,
 .install-steps h2,
@@ -574,27 +594,6 @@ button {
   line-height: 1.6;
 }
 
-.method-preview {
-  padding: 100px 0;
-  border-block: 1px solid var(--line);
-  background: #fff;
-}
-
-.method-preview-grid {
-  display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  align-items: center;
-  gap: 82px;
-}
-
-.method-preview-grid > div:first-child > p:not(.eyebrow) {
-  margin: 19px 0 22px;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.method-preview-grid a,
 .section-heading.split > a,
 .install-safety > a {
   display: inline-flex;
@@ -603,61 +602,6 @@ button {
   color: #34343a;
   font-size: 11px;
   font-weight: 630;
-}
-
-.method-card {
-  padding: 25px;
-  border: 1px solid #dddddf;
-  border-radius: 12px;
-  background: #fafafa;
-}
-
-.method-card > span {
-  display: block;
-  margin-bottom: 16px;
-  color: #77777e;
-  font:
-    600 8px var(--font-mono),
-    monospace;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-.method-card > code {
-  display: block;
-  padding: 18px;
-  border: 1px solid #e0def9;
-  border-radius: 9px;
-  overflow-x: auto;
-  color: #4336b6;
-  background: var(--accent-soft);
-  font:
-    500 13px/1.5 var(--font-mono),
-    monospace;
-  white-space: nowrap;
-}
-
-.method-card dl {
-  margin: 18px 0 0;
-}
-
-.method-card dl div {
-  padding: 12px 0;
-  border-top: 1px solid var(--line);
-  display: grid;
-  grid-template-columns: 90px 1fr;
-  gap: 12px;
-  font-size: 10px;
-}
-
-.method-card dt {
-  font-weight: 650;
-}
-
-.method-card dd {
-  margin: 0;
-  color: var(--muted);
-  font-family: var(--font-mono), monospace;
 }
 
 .privacy-section {
@@ -1132,7 +1076,6 @@ button {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .method-preview-grid,
   .privacy-section,
   .install-preview {
     grid-template-columns: 1fr;
@@ -1199,17 +1142,19 @@ button {
   .trust-strip .container {
     min-height: 88px;
     padding: 15px 0;
-    flex-wrap: wrap;
-    gap: 12px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 13px;
   }
 
-  .trust-strip span {
+  .trust-providers {
     width: 100%;
-    text-align: center;
+    flex-wrap: wrap;
+    gap: 12px 22px;
   }
 
   .capability-section,
-  .method-preview,
   .privacy-section,
   .learn-section {
     padding-block: 76px;
@@ -1230,11 +1175,6 @@ button {
     flex-direction: column;
   }
 
-  .method-card {
-    padding: 18px;
-  }
-
-  .method-card dl div,
   .method-table > div {
     grid-template-columns: 1fr;
     gap: 6px;
