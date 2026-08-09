@@ -1,0 +1,14 @@
+node_modules/
+.DS_Store
+.env
+.env.*
+!.env.example
+dist/
+.next/
+.plasmo/
+.vinext/
+build/
+.wrangler/
+worker-configuration.d.ts
+*.tsbuildinfo
+coverage/

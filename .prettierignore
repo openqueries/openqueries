@@ -1,0 +1,4 @@
+LICENSE
+pnpm-lock.yaml
+apps/extension/assets/icon.svg
+apps/web/public/*.svg

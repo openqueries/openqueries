@@ -1,0 +1,66 @@
+{
+  "name": "@openqueries/extension",
+  "displayName": "Open Queries",
+  "version": "0.1.0",
+  "description": "See the web-search queries AI assistants use and estimate likely fan-out queries.",
+  "author": "Open Queries contributors",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "build": "plasmo build",
+    "dev": "plasmo dev",
+    "package": "plasmo package",
+    "test": "tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@openqueries/contracts": "workspace:*",
+    "@openqueries/query-core": "workspace:*",
+    "lucide-react": "1.30.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@types/chrome": "0.2.5",
+    "@types/jsdom": "21.1.7",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "jsdom": "26.1.0",
+    "plasmo": "0.90.5",
+    "tsx": "4.23.11",
+    "typescript": "5.9.3"
+  },
+  "manifest": {
+    "minimum_chrome_version": "114",
+    "permissions": [
+      "sidePanel",
+      "storage"
+    ],
+    "host_permissions": [
+      "https://chatgpt.com/*",
+      "https://claude.ai/*",
+      "https://www.google.com/*",
+      "https://www.google.de/*",
+      "https://www.google.co.uk/*",
+      "https://www.google.fr/*",
+      "https://www.google.es/*",
+      "https://www.google.it/*",
+      "https://www.google.nl/*",
+      "https://www.google.pl/*",
+      "https://www.google.at/*",
+      "https://www.google.ch/*",
+      "https://www.google.ca/*",
+      "https://www.google.com.au/*",
+      "https://www.google.co.in/*",
+      "https://www.google.co.jp/*",
+      "https://openqueries.org/*",
+      "http://localhost:3000/*"
+    ],
+    "action": {
+      "default_title": "Open Queries"
+    },
+    "side_panel": {
+      "default_path": "sidepanel.html"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "extends": "plasmo/templates/tsconfig.base",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~*": ["./*"],
+      "@openqueries/contracts": ["../../packages/contracts/src/index.ts"],
+      "@openqueries/query-core": ["../../packages/query-core/src/index.ts"]
+    },
+    "strict": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "include": [
+    ".plasmo/index.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "../../packages/**/*.ts"
+  ],
+  "exclude": ["node_modules", "build"]
+}
