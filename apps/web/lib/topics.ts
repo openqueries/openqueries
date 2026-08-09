@@ -92,7 +92,7 @@ export const topicPages: TopicPage[] = [
       {
         heading: "Local history and open aggregation",
         paragraphs: [
-          "Local capture is the installed product. Contributing safe observed queries to the open history is a separate option that starts off. Estimated fan-outs are never counted as observed demand.",
+          "Local capture is the installed product. Contributing safe observed queries to the open history starts off; enabling it unlocks fan-out estimates. Estimated fan-outs are never counted as observed demand.",
         ],
       },
     ],

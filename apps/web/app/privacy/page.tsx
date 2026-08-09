@@ -32,8 +32,10 @@ export default function PrivacyPage() {
           Query contribution starts off. If it is enabled during onboarding or
           later in Settings, safe observed queries can be sent with a random
           pseudonymous installation tag. For Google Search, the typed search
-          query is included as the clearly disclosed exception. Contribution can
-          be stopped and deleted at any time.
+          query is included as the clearly disclosed exception. Local capture
+          remains available without contribution; fan-out estimates are
+          available only while contribution is enabled. Contribution can be
+          stopped and deleted at any time.
         </p>
       </section>
       <section>
@@ -61,10 +63,10 @@ export default function PrivacyPage() {
         <p>
           Queries matching common email, phone, payment-card, access-token,
           private-key or high-entropy secret patterns are blocked from donation.
-          Requested fan-out generation sends the selected safe query to the
-          corresponding model provider for provider-native estimation. Open
-          Queries never sends one provider's candidates to a universal GPT
-          ranker.
+          While contribution is enabled, requested fan-out generation sends the
+          selected safe query to the corresponding model provider for
+          provider-native estimation. Open Queries never sends one provider's
+          candidates to a universal GPT ranker.
         </p>
         <p>
           Raw donation events expire after 13 months. Anonymous daily aggregates

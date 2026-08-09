@@ -6,8 +6,8 @@ Open Queries is one monorepo with four trust boundaries:
 Provider search-tool signal
   -> fail-closed, provider-specific Plasmo adapter
   -> Chrome side panel + 30-day local history
-       -> optional observed-query donation -> Queue -> D1 raw events
-       -> explicit fan-out request -> Cloudflare Worker
+       -> accepted observed-query contribution -> Queue -> D1 raw events
+       -> contribution enabled + explicit fan-out request -> Cloudflare Worker
             -> ChatGPT: gpt-5.6-luna structured output + native token logprobs
             -> Google: gemini-3.1-flash-lite, 16 native samples + Wilson interval
             -> Claude: claude-haiku-4-5, 16 native samples + Wilson interval
@@ -30,8 +30,9 @@ adapter clones only ChatGPT conversation transport responses, walks only
 explicit search-metadata/tool fields and posts query strings to the isolated
 extension context. Ordinary `query` fields and message content are rejected and
 never cross that boundary. Claude and Google adapters read explicit search UI.
-All processing happens locally unless the user separately requests fan-outs or
-enables query contribution.
+All capture and history processing happens locally while contribution is off.
+Enabling query contribution permits safe observed-query donations and unlocks
+explicit, user-requested fan-out estimation.
 
 Sensitive-pattern checks run before donation and again at the Worker. Unsafe
 queries stay local and cannot be sent for fan-out estimation. Old local V1

@@ -30,7 +30,7 @@ const capabilities = [
   {
     icon: Sigma,
     title: "Estimate with native evidence",
-    copy: "Request plausible fan-outs ranked by each provider’s own token probabilities—or repeated native samples when logprobs are unavailable.",
+    copy: "Enable query contribution, then request plausible fan-outs ranked by each provider’s own token probabilities—or repeated native samples when logprobs are unavailable.",
   },
   {
     icon: Code2,
@@ -78,7 +78,8 @@ export default function HomePage() {
           <p className="hero-deck">
             Open Queries shows the web-search queries surfaced by ChatGPT,
             Claude and Google AI Overviews in a local Chrome side panel—and
-            estimates likely fan-out queries only when you ask.
+            unlocks on-demand fan-out estimates after you enable query
+            contribution.
           </p>
           <div className="hero-actions">
             <Link className="button primary" href="/install">
@@ -154,7 +155,7 @@ export default function HomePage() {
         <ul>
           {[
             "No chat messages, titles, account identity or conversation URLs",
-            "Query contribution is separate, optional and off until you choose it",
+            "Query contribution starts off; enabling it unlocks fan-out estimates",
             "Sensitive-pattern filtering runs locally and at the Worker edge",
             "Public aggregates require at least five anonymous donors",
             "Estimated fan-outs never enter observed-query aggregates",

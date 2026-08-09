@@ -24,9 +24,10 @@ the corresponding provider rather than a universal GPT scorer.
 - Never emits or stores chat messages, titles, account identity or conversation
   URLs; ordinary message fields are rejected rather than used as a fallback.
 - Keeps a 30-day trace in Chrome.
-- Generates likely fan-outs only after a user request.
-- Starts anonymous query contribution off; it remains a separate, optional
-  control.
+- Generates likely fan-outs only after a user request and while query
+  contribution is enabled.
+- Starts anonymous query contribution off. Local capture remains available
+  without it; enabling contribution unlocks fan-out estimates.
 - Never mixes estimated fan-outs into observed-query aggregates.
 
 ## Provider-native estimation

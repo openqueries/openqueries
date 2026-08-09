@@ -8,19 +8,19 @@ See ChatGPT, Claude and Google AI search queries in a local side panel, then ins
 
 Open Queries makes the retrieval layer of AI search visible.
 
-When ChatGPT, Claude or Google Search runs a web search, the extension adds the provider's explicit search-tool query to a clean local side-panel trace. For ChatGPT this includes structured `search_queries` metadata when the interface shows only a website count. It never treats chat messages as search queries. You can then request likely fan-out queries for any captured search and inspect the provider-native evidence behind their order.
+When ChatGPT, Claude or Google Search runs a web search, the extension adds the provider's explicit search-tool query to a clean local side-panel trace. For ChatGPT this includes structured `search_queries` metadata when the interface shows only a website count. It never treats chat messages as search queries. After enabling query contribution, you can request likely fan-out queries for any captured search and inspect the provider-native evidence behind their order.
 
 WHAT YOU CAN INSPECT
 
 • Web-search queries surfaced by ChatGPT Search
 • Web-search queries surfaced by Claude web search
 • Google Search seeds and expanded queries shown in Google AI Overviews
-• Likely fan-out queries, generated only when you request them
+• Likely fan-out queries, generated only when contribution is enabled and you request them
 • Ranking details such as native token log probabilities, perplexity or repeated-sample inclusion frequency
 
 LOCAL BY DEFAULT
 
-Your 30-day query trace stays in Chrome. Query contribution is a separate, optional control and starts off. Open Queries does not collect chat messages, conversation titles, account identity or conversation URLs.
+Your 30-day query trace stays in Chrome and remains available when contribution is off. Query contribution starts off; enabling it shares privacy-checked observed queries and unlocks fan-out estimates. Open Queries does not collect chat messages, conversation titles, account identity or conversation URLs.
 
 PROVIDER-NATIVE METHODOLOGY
 
@@ -52,15 +52,16 @@ Open Queries is independent and is not affiliated with, endorsed by or sponsored
 
 No Open Queries account is required. Pin the toolbar action and open the side
 panel beside ChatGPT, Claude or a Google Search result. Trigger a provider web
-search; its explicit search-tool query appears in the local trace. In Claude,
-expand “Searched the web” to reveal the query chip. Select the query and click
-“Estimate fan-outs”. Contribution starts off. The parser emits only explicit
-search metadata or search UI and never stores or transfers chat messages. A
-supported provider may require its own login.
+search; its explicit search-tool query appears in the local trace even while
+contribution is off. In Claude, expand “Searched the web” to reveal the query
+chip. Open Settings, enable “Donate observed queries”, then select the query and
+click “Estimate fan-outs”. The parser emits only explicit search metadata or
+search UI and never stores or transfers chat messages. A supported provider may
+require its own login.
 
 ## Single purpose
 
-Open Queries records only explicit AI search-tool queries in a local Chrome side panel and, when the user asks, returns likely fan-out queries with provider-native ranking evidence.
+Open Queries records only explicit AI search-tool queries in a local Chrome side panel and, after the user enables query contribution and asks, returns likely fan-out queries with provider-native ranking evidence.
 
 ## Permission justifications
 
@@ -88,7 +89,7 @@ No remote code is used. All executable extension code is included in the submitt
 
 - Website content: explicit web-search query text exposed by a supported provider's search tool.
 - Local processing: enabled automatically for the side-panel trace.
-- Transfer for fan-outs: one selected query is sent only after the user clicks “Estimate fan-outs”.
-- Optional contribution: privacy-checked observed queries are donated only after the user enables the separate control; it starts off.
+- Transfer for fan-outs: while contribution is enabled, one selected query is sent only after the user clicks “Estimate fan-outs”.
+- Contribution: privacy-checked observed queries are donated only after the user enables the control; it starts off, local capture remains available, and fan-out estimates stay locked until it is enabled.
 - Not collected: chat messages, conversation titles, account identity, browsing history outside the supported search surfaces or conversation URLs.
 - Not sold, used for advertising, used for credit decisions or combined with unrelated personal data.

@@ -105,7 +105,7 @@ export const learnArticles: LearnArticle[] = [
       {
         heading: "Estimated queries",
         paragraphs: [
-          "An estimated query is generated only after a user asks for fan-out ideas. Open Queries uses the corresponding provider model and evaluates evidence from that same provider. OpenAI exposes native token log probabilities; the current Gemini and Claude endpoints are estimated through repeated native samples because they do not expose usable output logprobs.",
+          "An estimated query is generated only while query contribution is enabled and after a user asks for fan-out ideas. Open Queries uses the corresponding provider model and evaluates evidence from that same provider. OpenAI exposes native token log probabilities; the current Gemini and Claude endpoints are estimated through repeated native samples because they do not expose usable output logprobs.",
           "The score is useful for ordering candidates within a run. It is not a claim that the original assistant issued the query.",
         ],
       },

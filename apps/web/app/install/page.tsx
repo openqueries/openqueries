@@ -23,8 +23,9 @@ export default function InstallPage() {
         <h1>Put the AI search trace beside the conversation.</h1>
         <p>
           Open Queries runs as a clean Chrome side panel. It reads explicit
-          web-search UI—not chat messages—and estimates fan-outs only when you
-          ask.
+          web-search UI—not chat messages. Local capture works immediately;
+          fan-out estimates unlock after you enable query contribution and ask
+          for them.
         </p>
         <div className="hero-actions">
           <a className="button primary" href={CHROME_WEB_STORE_URL}>
@@ -71,8 +72,8 @@ export default function InstallPage() {
               <div>
                 <strong>Choose donation settings</strong>
                 <p>
-                  Review the exact data boundary before enabling the shared
-                  query-history contribution.
+                  Review the exact data boundary. Enabling query contribution
+                  unlocks on-demand fan-out estimates.
                 </p>
               </div>
             </li>
