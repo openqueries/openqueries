@@ -45,6 +45,16 @@ Open Queries is independent and is not affiliated with, endorsed by or sponsored
 - Homepage: https://openqueries.org
 - Support: https://openqueries.org/support
 - Privacy policy: https://openqueries.org/privacy
+- Official URL: https://openqueries.org
+- Chrome Web Store item ID: `ieglcpgkjnieapajeldfhkjpllkcamkl`
+
+## Reviewer instructions
+
+No Open Queries account is required. Pin the toolbar action and open the side
+panel beside ChatGPT, Claude or a Google Search result. Trigger a provider web
+search; its explicit query appears in the local trace. Select the query and
+click “Estimate fan-outs”. Contribution starts off, and the extension never
+reads chat messages. A supported provider may require its own login.
 
 ## Single purpose
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { siGithub, siGooglechrome } from "simple-icons";
 
 import { BrandIcon, QueryInterface, SiteShell } from "../components";
-import { pageMetadata } from "@/lib/site";
+import { CHROME_WEB_STORE_URL, GITHUB_URL, pageMetadata } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
   path: "/install",
@@ -18,7 +18,7 @@ export default function InstallPage() {
     <SiteShell>
       <header className="install-hero container">
         <p className="status-label">
-          <i /> Chrome beta
+          <i /> Chrome Web Store
         </p>
         <h1>Put the AI search trace beside the conversation.</h1>
         <p>
@@ -27,47 +27,42 @@ export default function InstallPage() {
           ask.
         </p>
         <div className="hero-actions">
-          <a
-            className="button primary"
-            href="https://github.com/openqueries/openqueries/releases"
-          >
+          <a className="button primary" href={CHROME_WEB_STORE_URL}>
             <BrandIcon icon={siGooglechrome} size={17} />
-            Download beta
+            Add to Chrome
           </a>
-          <a
-            className="button secondary"
-            href="https://github.com/openqueries/openqueries"
-          >
+          <a className="button secondary" href={`${GITHUB_URL}/releases`}>
             <BrandIcon icon={siGithub} size={17} />
-            Inspect source
+            Download release
           </a>
         </div>
         <span className="install-disclosure">
-          The Chrome Web Store listing will appear here when the public beta is
-          approved. Until then, releases are installable in developer mode.
+          The Store listing is prepared for review. Until Google makes it
+          public, the same open-source build remains available as a signed
+          project release.
         </span>
       </header>
 
       <section className="install-preview container">
         <QueryInterface />
         <div className="install-steps">
-          <p className="eyebrow">Install from a release</p>
+          <p className="eyebrow">Install from Chrome</p>
           <h2>Three transparent steps.</h2>
           <ol>
             <li>
               <span>01</span>
               <div>
-                <strong>Download and unpack</strong>
-                <p>Use a signed project release from the public repository.</p>
+                <strong>Add the extension</strong>
+                <p>Install the reviewed package from the Chrome Web Store.</p>
               </div>
             </li>
             <li>
               <span>02</span>
               <div>
-                <strong>Load the extension</strong>
+                <strong>Open the side panel</strong>
                 <p>
-                  Open chrome://extensions, enable Developer mode and select the
-                  unpacked build.
+                  Pin Open Queries, then click its toolbar icon beside a
+                  supported AI search page.
                 </p>
               </div>
             </li>

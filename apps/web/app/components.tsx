@@ -12,6 +12,8 @@ import { OpenQueriesMark, ProviderLogo } from "@openqueries/provider-icons";
 import type { SimpleIcon } from "simple-icons";
 import { siGithub, siGooglechrome } from "simple-icons";
 
+import { CHROME_WEB_STORE_URL } from "@/lib/site";
+
 export function BrandIcon({
   icon,
   size = 16,
@@ -79,6 +81,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
           <Link href="/support">Support</Link>
           <Link href="/security">Security</Link>
           <Link href="/open-source">Open source</Link>
+          <a href={CHROME_WEB_STORE_URL}>Chrome Web Store</a>
           <a href="https://github.com/openqueries/openqueries">GitHub</a>
         </div>
         <p className="footer-note">

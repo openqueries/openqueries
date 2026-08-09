@@ -1,5 +1,7 @@
 # Open Queries
 
+[Website](https://openqueries.org) · [Chrome Web Store](https://chromewebstore.google.com/detail/ieglcpgkjnieapajeldfhkjpllkcamkl) · [Methodology](https://openqueries.org/methodology) · [Privacy](https://openqueries.org/privacy)
+
 **See the queries behind AI search.**
 
 Open Queries is an open-source Chrome side-panel extension for inspecting the

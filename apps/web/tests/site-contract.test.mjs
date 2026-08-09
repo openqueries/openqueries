@@ -46,6 +46,11 @@ test("ships stable SEO, methodology and legal surfaces", () => {
     /application\/ld\+json|StructuredData/u,
   );
   assert.match(read("app/layout.tsx"), /metadataBase/u);
+  assert.match(
+    read("lib/site.ts"),
+    /chromewebstore\.google\.com\/detail\/ieglcpgkjnieapajeldfhkjpllkcamkl/u,
+  );
+  assert.match(read("wrangler.jsonc"), /ieglcpgkjnieapajeldfhkjpllkcamkl/u);
 });
 
 test("methodology never treats estimated fan-outs as observed demand", () => {
