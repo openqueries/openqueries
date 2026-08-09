@@ -40,7 +40,10 @@ new evidence contract.
 
 ## Provider-native estimation
 
-All providers receive the same versioned minimal prompt. OpenAI candidates and
+All providers receive the same versioned minimal prompt. It asks only for the
+most likely other web-search queries from the same fan-out as one observed
+query; it does not prescribe operators, domains, categories or query syntax.
+OpenAI candidates and
 their token logprobs come from the same `gpt-5.6-luna` structured response. The
 Worker maps each candidate's JSON string to UTF-8 token spans, averages every
 overlapping token log probability once, and returns inverse perplexity.
@@ -48,7 +51,10 @@ overlapping token log probability once, and returns inverse perplexity.
 Anthropic does not expose Claude output logprobs. Google's configured Gemini
 Developer API model currently rejects `responseLogprobs`. Those providers use
 16 independent native structured-output samples, require at least 12 successes,
-and return inclusion frequency with a Wilson 95% confidence interval. There is
+and return inclusion frequency with a Wilson 95% confidence interval. Claude's
+independent calls use SSE so Cloudflare can release connection slots on response
+headers while bodies are still streaming; Gemini uses six-request batches.
+Transport concurrency does not alter the sample count or estimator. There is
 no shared GPT scorer, cross-provider fallback, ordinal pseudo-score or character
 weighting. The actual method, model and prompt version travel with every V2
 response and D1 metadata row.

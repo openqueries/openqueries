@@ -3,9 +3,55 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  anthropicStreamOutput,
+  collectEmpiricalSamples,
+  generationPrompt,
+  parseServerSentEventData,
   rankEmpiricalSamples,
   scoreQueriesFromTokenLogProbabilities,
 } from "../worker/providers";
+
+test("uses a minimal fan-out reconstruction prompt without syntax heuristics", () => {
+  const prompt = generationPrompt(
+    "site:bfmed.org antenatal colostrum expression protocol pregnancy",
+  );
+  assert.match(prompt, /most likely other web-search queries/u);
+  assert.match(prompt, /same query fan-out/u);
+  assert.match(prompt, /<observed_query>/u);
+  assert.doesNotMatch(
+    prompt.slice(0, prompt.indexOf("<observed_query>")),
+    /site:|domain|operator|ChatGPT|Claude|Google|seed's language/iu,
+  );
+});
+
+test("reassembles Anthropic structured output and usage from SSE", () => {
+  const stream = [
+    'event: message_start\ndata: {"type":"message_start","message":{"usage":{"input_tokens":21,"output_tokens":1}}}',
+    'event: content_block_start\ndata: {"type":"content_block_start","content_block":{"type":"text","text":""}}',
+    'event: content_block_delta\ndata: {"type":"content_block_delta","delta":{"type":"text_delta","text":"{\\"queries\\":[\\"alpha"}}',
+    'event: content_block_delta\ndata: {"type":"content_block_delta","delta":{"type":"text_delta","text":" beta\\"]}"}}',
+    'event: message_delta\ndata: {"type":"message_delta","usage":{"output_tokens":17}}',
+    'event: message_stop\ndata: {"type":"message_stop"}',
+  ].join("\n\n");
+  const output = anthropicStreamOutput(parseServerSentEventData(stream));
+  assert.equal(output.text, '{"queries":["alpha beta"]}');
+  assert.deepEqual(output.usage, { input: 21, output: 17 });
+});
+
+test("can collect all 16 independent samples concurrently", async () => {
+  let active = 0;
+  let maximumActive = 0;
+  const result = await collectEmpiricalSamples(async () => {
+    active += 1;
+    maximumActive = Math.max(maximumActive, active);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    active -= 1;
+    return { queries: ["candidate"], usage: { input: 1, output: 1 } };
+  }, 16);
+  assert.equal(result.samples.length, 16);
+  assert.equal(maximumActive, 16);
+  assert.deepEqual(result.usage, { input: 16, output: 16 });
+});
 
 test("maps UTF-8 token log-probabilities to each query exactly once", () => {
   const raw = JSON.stringify({ queries: ["café tools", "other query"] });

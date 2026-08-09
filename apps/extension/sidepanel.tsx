@@ -125,6 +125,23 @@ function QueryCard({
   loading: boolean;
 }) {
   const [expanded, setExpanded] = useState(Boolean(event.fanOuts?.length));
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!loading) {
+      setElapsedSeconds(0);
+      return;
+    }
+    const started = Date.now();
+    const update = () =>
+      setElapsedSeconds(
+        Math.max(0, Math.floor((Date.now() - started) / 1_000)),
+      );
+    update();
+    const interval = window.setInterval(update, 250);
+    return () => window.clearInterval(interval);
+  }, [loading]);
+
   return (
     <article className="query-card">
       <div className="query-card-head">
@@ -157,7 +174,11 @@ function QueryCard({
           ) : (
             <Sparkles size={14} />
           )}
-          {event.fanOuts?.length ? "Refresh estimates" : "Estimate fan-outs"}
+          {loading
+            ? `${platformLabel(event.platform)} · ${elapsedSeconds}s`
+            : event.fanOuts?.length
+              ? "Refresh estimates"
+              : "Estimate fan-outs"}
         </button>
         {event.fanOuts?.length ? (
           <button

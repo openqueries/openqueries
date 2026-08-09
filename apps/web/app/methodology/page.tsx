@@ -15,7 +15,7 @@ export const metadata: Metadata = pageMetadata({
 export default function MethodologyPage() {
   return (
     <EditorialPage
-      eyebrow="Methodology · fanout-v2.0.0"
+      eyebrow="Methodology · fanout-v2.1.0"
       title="Measure what the provider actually exposes."
       intro="Open Queries separates direct UI observations from probabilistic reconstructions. It never routes every provider through one GPT ranker. A score is not search volume."
     >
@@ -60,9 +60,9 @@ export default function MethodologyPage() {
         <div className="formula">
           <DisplayMath>{String.raw`Y=(q_1,\ldots,q_{12})\sim P_m(\,\cdot\mid x,p_v\,)`}</DisplayMath>
           <span>
-            The prompt asks only for distinct web-search queries in the seed
-            language. It contains no categories, rationales, scoring rubric or
-            rank instructions.
+            The prompt asks only for the most likely other web-search queries
+            from the same fan-out as the observed query. It contains no domain,
+            operator, language, category, rationale, scoring or ranking rules.
           </span>
         </div>
         <p>
@@ -111,7 +111,8 @@ export default function MethodologyPage() {
           SDK. Open Queries therefore reports a different provider-native
           estimator instead of silently using GPT. Each provider model receives
           the same versioned prompt in 16 independent structured-output calls.
-          At least 12 must succeed.
+          At least 12 must succeed. Parallel transport changes wall-clock time,
+          not the number or statistical independence of those model calls.
         </p>
         <div className="formula stack">
           <DisplayMath>{String.raw`K(q)=\sum_{i=1}^{n}\mathbf{1}\!\left[q\in Y_i\right]`}</DisplayMath>

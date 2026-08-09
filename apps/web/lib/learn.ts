@@ -129,8 +129,8 @@ export const learnArticles: LearnArticle[] = [
       {
         heading: "The estimand",
         paragraphs: [
-          "Suppose a closed retrieval system receives an information need x and may emit latent search queries. Its true internal query distribution is not observable through the public product API. The defensible target is therefore narrower: candidate queries that are compatible with the distribution of a named provider model under a fixed, minimal generation experiment.",
-          "Open Queries records the provider model m, prompt p and prompt version v. The structured output Y contains exactly 12 strings. This does not identify the production assistant’s hidden policy; it defines a repeatable proxy whose assumptions can be inspected.",
+          "Suppose a closed retrieval system has emitted one observed web-search query x as part of a latent query fan-out. Its full internal query distribution is not observable through the public product API. The defensible target is therefore narrower: the most likely other queries from that same fan-out under a fixed, minimal generation experiment with the named provider model.",
+          "Open Queries records the provider model m, prompt p and prompt version v. The structured output Y contains exactly 12 strings. The prompt specifies no domain, search operator, language, query category or ranking rule. This does not identify the production assistant’s hidden policy; it defines a repeatable proxy whose assumptions can be inspected.",
         ],
         equations: ["Y = (q₁, …, q₁₂) ~ Pₘ(· | x, p, v)"],
       },
@@ -168,7 +168,7 @@ export const learnArticles: LearnArticle[] = [
       {
         heading: "Gemini and Claude as binomial inclusion experiments",
         paragraphs: [
-          "Anthropic does not return output token log probabilities for Claude through its public Messages API. Google documents the responseLogprobs field, but the configured Gemini 3.1 Flash-Lite Developer API endpoint currently rejects it. The closest working provider-native proxy is repeated sampling from each model itself under the same prompt. Open Queries makes 16 independent structured calls and requires at least 12 valid samples.",
+          "Anthropic does not return output token log probabilities for Claude through its public Messages API. Google documents the responseLogprobs field, but the configured Gemini 3.1 Flash-Lite Developer API endpoint currently rejects it. The closest working provider-native proxy is repeated sampling from each model itself under the same prompt. Open Queries makes 16 independent structured calls and requires at least 12 valid samples. Streaming and parallel transport reduce wall-clock latency without combining or replacing samples.",
           "For a normalized query q, K(q) is the number of samples containing q and n is the valid sample count. Inclusion frequency estimates the probability that q appears somewhere in the bounded output under this experiment. A Wilson interval is reported because the naive normal interval performs poorly for small n and proportions near zero or one.",
         ],
         equations: [
