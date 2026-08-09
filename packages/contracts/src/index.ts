@@ -34,9 +34,9 @@ export const DonationBatchV1Schema = z
   })
   .strict();
 
-export const FanOutRequestV1Schema = z
+export const FanOutRequestV2Schema = z
   .object({
-    schemaVersion: z.literal(1),
+    schemaVersion: z.literal(2),
     requestId: z.string().uuid(),
     donorTag: z.string().regex(/^[a-f0-9]{64}$/),
     platform: PlatformSchema,
@@ -50,26 +50,53 @@ export const FanOutRequestV1Schema = z
   })
   .strict();
 
-export const FanOutCandidateV1Schema = z
+export const NativeInversePerplexityScoreSchema = z
   .object({
-    query: z.string().min(1).max(500),
-    rank: z.number().int().min(1).max(10),
-    likelihoodScore: z.number().min(0).max(1),
-    isReliable: z.boolean(),
-    provenance: z.literal("estimated"),
+    kind: z.literal("native_inverse_perplexity"),
+    value: z.number().min(0).max(1),
+    meanTokenLogProbability: z.number().finite(),
+    perplexity: z.number().positive().finite(),
+    tokenCount: z.number().int().positive(),
   })
   .strict();
 
-export const FanOutResponseV1Schema = z
+export const EmpiricalInclusionFrequencyScoreSchema = z
   .object({
-    schemaVersion: z.literal(1),
+    kind: z.literal("empirical_inclusion_frequency"),
+    value: z.number().min(0).max(1),
+    occurrences: z.number().int().nonnegative(),
+    sampleCount: z.number().int().positive(),
+    confidence95: z
+      .object({
+        lower: z.number().min(0).max(1),
+        upper: z.number().min(0).max(1),
+      })
+      .strict(),
+  })
+  .strict();
+
+export const FanOutCandidateV2Schema = z
+  .object({
+    query: z.string().min(1).max(500),
+    rank: z.number().int().min(1).max(10),
+    provenance: z.literal("estimated"),
+    score: z.discriminatedUnion("kind", [
+      NativeInversePerplexityScoreSchema,
+      EmpiricalInclusionFrequencyScoreSchema,
+    ]),
+  })
+  .strict();
+
+export const FanOutResponseV2Schema = z
+  .object({
+    schemaVersion: z.literal(2),
     requestId: z.string().uuid(),
     sourceQuery: z.string(),
     platform: PlatformSchema,
-    fanOuts: z.array(FanOutCandidateV1Schema).max(10),
-    method: z.literal("provider_matched_generation_with_logprob_scoring"),
-    generatorModel: z.string(),
-    scorerModel: z.string(),
+    fanOuts: z.array(FanOutCandidateV2Schema).max(10),
+    method: z.enum(["provider_native_logprobs", "provider_native_sampling"]),
+    model: z.string(),
+    promptVersion: z.string(),
     generatedAt: z.string().datetime(),
   })
   .strict();
@@ -96,8 +123,14 @@ export type Platform = z.infer<typeof PlatformSchema>;
 export type SourceKind = z.infer<typeof SourceKindSchema>;
 export type QueryObservationV1 = z.infer<typeof QueryObservationV1Schema>;
 export type DonationBatchV1 = z.infer<typeof DonationBatchV1Schema>;
-export type FanOutRequestV1 = z.infer<typeof FanOutRequestV1Schema>;
-export type FanOutCandidateV1 = z.infer<typeof FanOutCandidateV1Schema>;
-export type FanOutResponseV1 = z.infer<typeof FanOutResponseV1Schema>;
+export type FanOutRequestV2 = z.infer<typeof FanOutRequestV2Schema>;
+export type NativeInversePerplexityScore = z.infer<
+  typeof NativeInversePerplexityScoreSchema
+>;
+export type EmpiricalInclusionFrequencyScore = z.infer<
+  typeof EmpiricalInclusionFrequencyScoreSchema
+>;
+export type FanOutCandidateV2 = z.infer<typeof FanOutCandidateV2Schema>;
+export type FanOutResponseV2 = z.infer<typeof FanOutResponseV2Schema>;
 export type DeleteDonationsV1 = z.infer<typeof DeleteDonationsV1Schema>;
 export type PublicConfigV1 = z.infer<typeof PublicConfigV1Schema>;

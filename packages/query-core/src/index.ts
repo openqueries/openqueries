@@ -1,4 +1,8 @@
-import type { FanOutCandidateV1 } from "@openqueries/contracts";
+import type {
+  EmpiricalInclusionFrequencyScore,
+  FanOutCandidateV2,
+  NativeInversePerplexityScore,
+} from "@openqueries/contracts";
 
 const EMAIL = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/iu;
 const PHONE = /(?:\+?\d[\d\s().-]{7,}\d)/u;
@@ -66,30 +70,96 @@ export function inversePerplexity(meanLogProbability: number): number {
   return Math.min(1, Math.max(0, Math.exp(meanLogProbability)));
 }
 
-export function rankFanOuts(
-  queries: Array<{ query: string; meanLogProbability?: number }>,
+export function nativeInversePerplexityScore(
+  meanTokenLogProbability: number,
+  tokenCount: number,
+): NativeInversePerplexityScore {
+  if (!Number.isFinite(meanTokenLogProbability) || tokenCount < 1)
+    throw new Error("A native score requires finite token log-probabilities");
+  const perplexity = Math.exp(-meanTokenLogProbability);
+  return {
+    kind: "native_inverse_perplexity",
+    value: inversePerplexity(meanTokenLogProbability),
+    meanTokenLogProbability,
+    perplexity,
+    tokenCount,
+  };
+}
+
+export function wilsonInterval95(
+  occurrences: number,
+  sampleCount: number,
+): { lower: number; upper: number } {
+  if (
+    !Number.isInteger(occurrences) ||
+    !Number.isInteger(sampleCount) ||
+    occurrences < 0 ||
+    sampleCount < 1 ||
+    occurrences > sampleCount
+  )
+    throw new Error("Wilson intervals require 0 <= occurrences <= samples");
+  const z = 1.959963984540054;
+  const proportion = occurrences / sampleCount;
+  const denominator = 1 + (z * z) / sampleCount;
+  const center = proportion + (z * z) / (2 * sampleCount);
+  const margin =
+    z *
+    Math.sqrt(
+      (proportion * (1 - proportion)) / sampleCount +
+        (z * z) / (4 * sampleCount * sampleCount),
+    );
+  return {
+    lower: Math.max(0, (center - margin) / denominator),
+    upper: Math.min(1, (center + margin) / denominator),
+  };
+}
+
+export function empiricalInclusionFrequencyScore(
+  occurrences: number,
+  sampleCount: number,
+): EmpiricalInclusionFrequencyScore {
+  return {
+    kind: "empirical_inclusion_frequency",
+    value: occurrences / sampleCount,
+    occurrences,
+    sampleCount,
+    confidence95: wilsonInterval95(occurrences, sampleCount),
+  };
+}
+
+export function rankNativeFanOuts(
+  queries: Array<{
+    query: string;
+    meanTokenLogProbability: number;
+    tokenCount: number;
+  }>,
   maximum = 10,
-): FanOutCandidateV1[] {
-  const fallbackDenominator = Math.max(queries.length, 1);
-  const unique = new Map<string, { query: string; score: number }>();
-  queries.forEach((item, index) => {
+): FanOutCandidateV2[] {
+  const unique = new Map<
+    string,
+    { query: string; score: NativeInversePerplexityScore }
+  >();
+  queries.forEach((item) => {
     const query = normalizeQuery(item.query);
     const key = normalizedQueryKey(query);
     if (!query || unique.has(key) || !querySafety(query).safe) return;
-    const score =
-      item.meanLogProbability === undefined
-        ? Math.max(0.01, 1 - index / fallbackDenominator)
-        : inversePerplexity(item.meanLogProbability);
+    const score = nativeInversePerplexityScore(
+      item.meanTokenLogProbability,
+      item.tokenCount,
+    );
     unique.set(key, { query, score });
   });
   return [...unique.values()]
-    .sort((left, right) => right.score - left.score)
+    .sort(
+      (left, right) =>
+        right.score.value - left.score.value ||
+        left.query.localeCompare(right.query),
+    )
     .slice(0, maximum)
     .map((item, index) => ({
       query: item.query,
       rank: index + 1,
-      likelihoodScore: Number(item.score.toFixed(4)),
-      isReliable: item.score >= 0.35,
+      score: item.score,
       provenance: "estimated" as const,
     }));
 }

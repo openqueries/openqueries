@@ -1,7 +1,9 @@
+import { ArrowRight, Check, Code2, Eye, Sigma } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { siGithub, siGooglechrome } from "simple-icons";
 
-import { QueryInterface, SiteShell } from "./components";
+import { BrandIcon, QueryInterface, SiteShell } from "./components";
 import { StructuredData } from "./structured-data";
 import { learnArticles } from "@/lib/learn";
 import { absoluteUrl, DEFAULT_DESCRIPTION, pageMetadata } from "@/lib/site";
@@ -12,27 +14,22 @@ export const metadata: Metadata = pageMetadata({
   description: DEFAULT_DESCRIPTION,
 });
 
-const principles = [
-  [
-    "01",
-    "Queries, not conversations",
-    "The extension reads explicit web-search tool activity. Chat messages, titles and conversation URLs stay outside the contract.",
-  ],
-  [
-    "02",
-    "Observed stays observed",
-    "Real UI evidence is never mixed with synthetic fan-out estimates. Provenance travels with every record.",
-  ],
-  [
-    "03",
-    "Open by construction",
-    "Extension, worker, data contracts and methodology are licensed under AGPL-3.0-or-later.",
-  ],
-  [
-    "04",
-    "Useful before clever",
-    "A clean live trace creates immediate value. Public aggregates come only after the privacy threshold is met.",
-  ],
+const capabilities = [
+  {
+    icon: Eye,
+    title: "See the retrieval layer",
+    copy: "Capture web-search queries explicitly surfaced by ChatGPT, Claude and Google Search in a local side-panel trace.",
+  },
+  {
+    icon: Sigma,
+    title: "Estimate with native evidence",
+    copy: "Request plausible fan-outs ranked by each provider’s own token probabilities—or repeated native samples when logprobs are unavailable.",
+  },
+  {
+    icon: Code2,
+    title: "Audit the whole system",
+    copy: "Extension, Worker, schemas and methodology are public under AGPL-3.0-or-later. No black-box ranking layer.",
+  },
 ];
 
 export default function HomePage() {
@@ -60,34 +57,33 @@ export default function HomePage() {
           license: "https://www.gnu.org/licenses/agpl-3.0.html",
         }}
       />
+
       <section className="hero container">
         <div className="hero-copy">
           <p className="status-label">
-            <i /> Open-source query infrastructure
+            <i /> Open source · Chrome beta
           </p>
-          <h1>
-            See what AI
-            <br />
-            actually searches.
-          </h1>
+          <h1>See what AI actually searches.</h1>
           <p className="hero-deck">
-            Open Queries reveals the web-search queries surfaced by ChatGPT,
-            Claude and Google—then estimates the fan-outs they might have used,
-            without recording your conversations.
+            A transparent query trace for AI search. Inspect surfaced web
+            searches, explore likely fan-outs and contribute to an open query
+            history—without collecting conversations.
           </p>
-          <div className="hero-actions" id="install">
+          <div className="hero-actions">
+            <Link className="button primary" href="/install">
+              <BrandIcon icon={siGooglechrome} size={17} />
+              Get the extension
+            </Link>
             <a
-              className="button primary"
+              className="button secondary"
               href="https://github.com/openqueries/openqueries"
             >
-              View on GitHub <span>↗</span>
+              <BrandIcon icon={siGithub} size={17} />
+              View source
             </a>
-            <Link className="button secondary" href="/methodology">
-              Read the method
-            </Link>
           </div>
           <p className="hero-note">
-            Chrome beta · ChatGPT, Claude and Google Search · AGPL-3.0
+            Queries, not conversations · Observed stays observed · AGPL-3.0
           </p>
         </div>
         <QueryInterface />
@@ -95,106 +91,90 @@ export default function HomePage() {
 
       <section className="trust-strip">
         <div className="container">
-          <span>Supported surfaces</span>
+          <span>Supported now</span>
           <strong>ChatGPT</strong>
           <strong>Claude</strong>
           <strong>Google AI Overviews</strong>
-          <em>Gemini planned</em>
+          <em>Gemini surface next</em>
         </div>
       </section>
 
-      <section className="problem-section container">
-        <div>
-          <p className="eyebrow">The missing history</p>
-          <h2>Keyword tools stop where AI retrieval starts.</h2>
-        </div>
-        <div>
+      <section className="capability-section container">
+        <div className="section-heading centered">
+          <p className="eyebrow">The open retrieval layer</p>
+          <h2>Useful to inspect. Rigorous enough to audit.</h2>
           <p>
-            Answer engines can decompose one request into multiple searches
-            before they cite a source. Those retrieval queries rarely appear in
-            conventional keyword histories, leaving AEO and GEO teams to
-            optimize around outputs instead of the searches behind them.
-          </p>
-          <p>
-            Open Queries turns the visible part of that process into a
-            transparent, community-owned evidence layer.
+            Open Queries keeps direct observations and probabilistic estimates
+            separate from capture through aggregation.
           </p>
         </div>
-      </section>
-
-      <section className="workflow-section">
-        <div className="container">
-          <div className="section-heading">
-            <p className="eyebrow">How it works</p>
-            <h2>
-              A narrow data contract.
-              <br />A useful live trace.
-            </h2>
-          </div>
-          <div className="workflow-grid">
-            <article>
-              <span>01</span>
-              <h3>Observe</h3>
-              <p>
-                Provider-specific adapters watch only explicitly labelled
-                web-search UI inside the supported page.
-              </p>
-              <code>observed_model_search</code>
-            </article>
-            <article>
-              <span>02</span>
-              <h3>Inspect</h3>
-              <p>
-                The side panel keeps a searchable local history and shows where
-                and when each query appeared.
-              </p>
-              <code>30 days · local first</code>
-            </article>
-            <article>
-              <span>03</span>
-              <h3>Estimate</h3>
-              <p>
-                On request, a provider-matched model proposes fan-outs and a
-                shared log-probability scorer ranks them.
-              </p>
-              <code>estimated ≠ observed</code>
-            </article>
-            <article>
-              <span>04</span>
-              <h3>Contribute</h3>
-              <p>
-                With donation enabled, safe observed queries help build a
-                privacy-thresholded public history.
-              </p>
-              <code>k ≥ 5 donors</code>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section className="principles-section container">
-        <div className="section-heading split">
-          <div>
-            <p className="eyebrow">Project principles</p>
-            <h2>Transparency without surveillance.</h2>
-          </div>
-          <p>
-            Open source is not only a distribution choice here. It makes the
-            extraction boundary, scoring method and retention policy
-            inspectable.
-          </p>
-        </div>
-        <div className="principles-list">
-          {principles.map(([number, title, copy]) => (
-            <article key={number}>
-              <span>{number}</span>
-              <div>
-                <h3>{title}</h3>
-                <p>{copy}</p>
-              </div>
+        <div className="capability-grid">
+          {capabilities.map(({ icon: Icon, title, copy }) => (
+            <article key={title}>
+              <span>
+                <Icon size={18} />
+              </span>
+              <h3>{title}</h3>
+              <p>{copy}</p>
             </article>
           ))}
         </div>
+      </section>
+
+      <section className="method-preview">
+        <div className="container method-preview-grid">
+          <div>
+            <p className="eyebrow">Provider-native methodology</p>
+            <h2>No universal GPT ranker.</h2>
+            <p>
+              OpenAI candidates are generated and scored by GPT-5.6 Luna’s own
+              output logprobs. The configured Gemini and Claude endpoints are
+              reported separately through repeated native samples because those
+              endpoints do not expose usable output logprobs.
+            </p>
+            <Link href="/methodology">
+              Read the methodology <ArrowRight size={15} />
+            </Link>
+          </div>
+          <div className="method-card">
+            <span>Provider-native evidence</span>
+            <code>p̂(q) = exp((1 / |Tq|) Σ log p(t))</code>
+            <dl>
+              <div>
+                <dt>OpenAI</dt>
+                <dd>gpt-5.6-luna · token logprobs</dd>
+              </div>
+              <div>
+                <dt>Google</dt>
+                <dd>gemini-3.1-flash-lite · 16 native samples</dd>
+              </div>
+              <div>
+                <dt>Anthropic</dt>
+                <dd>Claude Haiku 4.5 · 16 samples + Wilson CI</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section className="privacy-section container">
+        <div>
+          <p className="eyebrow">A narrow data contract</p>
+          <h2>Transparent without surveillance.</h2>
+        </div>
+        <ul>
+          {[
+            "No chat messages, titles, account identity or conversation URLs",
+            "Donation is controllable, reversible and deletable by installation",
+            "Sensitive-pattern filtering runs locally and at the Worker edge",
+            "Public aggregates require at least five anonymous donors",
+            "Estimated fan-outs never enter observed-query aggregates",
+          ].map((item) => (
+            <li key={item}>
+              <Check size={15} /> {item}
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="learn-section">
@@ -202,17 +182,19 @@ export default function HomePage() {
           <div className="section-heading split">
             <div>
               <p className="eyebrow">Open methodology</p>
-              <h2>Use the signal carefully.</h2>
+              <h2>Read the evidence, not the marketing.</h2>
             </div>
-            <Link href="/learn">Browse all guides →</Link>
+            <Link href="/learn">
+              All guides <ArrowRight size={14} />
+            </Link>
           </div>
           <div className="article-grid">
-            {learnArticles.map((article) => (
+            {learnArticles.slice(0, 4).map((article) => (
               <Link href={`/learn/${article.slug}`} key={article.slug}>
                 <span>{article.eyebrow}</span>
                 <h3>{article.title}</h3>
                 <p>{article.description}</p>
-                <small>{article.readMinutes} min read · Open guide →</small>
+                <small>{article.readMinutes} min read</small>
               </Link>
             ))}
           </div>
@@ -221,19 +203,14 @@ export default function HomePage() {
 
       <section className="closing-cta container">
         <div>
-          <p className="eyebrow">A group effort</p>
-          <h2>Help make AI search legible.</h2>
-          <p>
-            Inspect the source, test an adapter or contribute observed query
-            evidence.
-          </p>
+          <p className="eyebrow">Make AI search transparent</p>
+          <h2>Build the query history AI search is missing.</h2>
+          <p>Install, inspect and contribute. Every layer stays open.</p>
         </div>
-        <a
-          className="button light"
-          href="https://github.com/openqueries/openqueries"
-        >
-          Explore the repository ↗
-        </a>
+        <Link className="button light" href="/install">
+          <BrandIcon icon={siGooglechrome} size={17} />
+          Get Open Queries
+        </Link>
       </section>
     </SiteShell>
   );

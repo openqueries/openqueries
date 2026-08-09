@@ -65,6 +65,13 @@ export default async function LearnArticlePage({
             {section.paragraphs.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
+            {section.equations?.length ? (
+              <div className="article-equations">
+                {section.equations.map((equation) => (
+                  <code key={equation}>{equation}</code>
+                ))}
+              </div>
+            ) : null}
             {section.bullets ? (
               <ul>
                 {section.bullets.map((bullet) => (

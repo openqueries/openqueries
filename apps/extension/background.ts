@@ -1,5 +1,5 @@
 import type {
-  FanOutRequestV1,
+  FanOutRequestV2,
   QueryObservationV1,
 } from "@openqueries/contracts";
 import { normalizeQuery, querySafety } from "@openqueries/query-core";
@@ -130,8 +130,8 @@ async function handleRequest(
         throw new Error(
           "This query may contain sensitive data and cannot be sent to a model.",
         );
-      const payload: FanOutRequestV1 = {
-        schemaVersion: 1,
+      const payload: FanOutRequestV2 = {
+        schemaVersion: 2,
         requestId: crypto.randomUUID(),
         donorTag: state.donorTag,
         platform: event.platform,

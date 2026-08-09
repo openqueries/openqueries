@@ -1,4 +1,5 @@
-export type AppEnv = Env & {
+export type AppEnv = Omit<Env, "GEMINI_SCORING_METHOD"> & {
+  GEMINI_SCORING_METHOD: "sampling" | "logprobs";
   OPENAI_API_KEY?: string;
   ANTHROPIC_API_KEY?: string;
   GEMINI_API_KEY?: string;

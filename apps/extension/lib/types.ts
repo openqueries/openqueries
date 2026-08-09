@@ -1,5 +1,5 @@
 import type {
-  FanOutCandidateV1,
+  FanOutCandidateV2,
   Platform,
   QueryObservationV1,
   SourceKind,
@@ -9,7 +9,7 @@ export type LocalQueryEvent = QueryObservationV1 & {
   tabId: number | null;
   uploadedAt?: string;
   donationBlockedReason?: string;
-  fanOuts?: FanOutCandidateV1[];
+  fanOuts?: FanOutCandidateV2[];
   fanOutGeneratedAt?: string;
 };
 

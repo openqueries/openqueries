@@ -1,8 +1,8 @@
 import {
   DeleteDonationsV1Schema,
   DonationBatchV1Schema,
-  FanOutRequestV1Schema,
-  type FanOutResponseV1,
+  FanOutRequestV2Schema,
+  type FanOutResponseV2,
   type PublicConfigV1,
 } from "@openqueries/contracts";
 import {
@@ -165,7 +165,7 @@ async function fanOuts(
   env: AppEnv,
   ctx: ExecutionContext,
 ): Promise<Response> {
-  const parsed = FanOutRequestV1Schema.safeParse(
+  const parsed = FanOutRequestV2Schema.safeParse(
     await request.json().catch(() => null),
   );
   if (!parsed.success)
@@ -219,15 +219,15 @@ async function fanOuts(
       parsed.data.seed.language,
     );
     const generatedAt = new Date().toISOString();
-    const response: FanOutResponseV1 = {
-      schemaVersion: 1,
+    const response: FanOutResponseV2 = {
+      schemaVersion: 2,
       requestId: parsed.data.requestId,
       sourceQuery: parsed.data.seed.query,
       platform: parsed.data.platform,
       fanOuts: generated.candidates,
-      method: "provider_matched_generation_with_logprob_scoring",
-      generatorModel: generated.generatorModel,
-      scorerModel: generated.scorerModel,
+      method: generated.method,
+      model: generated.model,
+      promptVersion: generated.promptVersion,
       generatedAt,
     };
     const seedHashPromise = sha256Hex(
@@ -238,10 +238,10 @@ async function fanOuts(
         .then((seedHash) =>
           env.DB.prepare(
             `
-      INSERT OR IGNORE INTO fanout_runs (
-        request_id, donor_tag, platform, seed_hash, generator_model, scorer_model,
-        candidate_count, duration_ms, generator_input_tokens, generator_output_tokens,
-        scorer_input_tokens, scorer_output_tokens, created_at
+      INSERT OR IGNORE INTO fanout_runs_v2 (
+        request_id, donor_tag, platform, seed_hash, method, model, prompt_version,
+        sample_count, candidate_count, duration_ms, input_tokens, output_tokens,
+        created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
           )
@@ -250,14 +250,14 @@ async function fanOuts(
               parsed.data.donorTag,
               parsed.data.platform,
               seedHash,
-              generated.generatorModel,
-              generated.scorerModel,
+              generated.method,
+              generated.model,
+              generated.promptVersion,
+              generated.sampleCount,
               generated.candidates.length,
               Date.now() - started,
-              generated.generatorUsage.input,
-              generated.generatorUsage.output,
-              generated.scorerUsage.input,
-              generated.scorerUsage.output,
+              generated.usage.input,
+              generated.usage.output,
               generatedAt,
             )
             .run(),
@@ -279,6 +279,8 @@ async function fanOuts(
         platform: parsed.data.platform,
         requestId: parsed.data.requestId,
         count: generated.candidates.length,
+        method: generated.method,
+        model: generated.model,
         durationMs: Date.now() - started,
       }),
     );
@@ -327,7 +329,7 @@ async function deleteDonationEvents(
     env.DB.prepare("DELETE FROM query_events WHERE donor_tag = ?").bind(
       donorTag,
     ),
-    env.DB.prepare("DELETE FROM fanout_runs WHERE donor_tag = ?").bind(
+    env.DB.prepare("DELETE FROM fanout_runs_v2 WHERE donor_tag = ?").bind(
       donorTag,
     ),
     env.DB.prepare("DELETE FROM fanout_daily_usage WHERE donor_tag = ?").bind(
@@ -351,7 +353,7 @@ export async function handleApi(
   ctx: ExecutionContext,
 ): Promise<Response | null> {
   const url = new URL(request.url);
-  if (!url.pathname.startsWith("/api/v1/")) return null;
+  if (!/^\/api\/v[12]\//u.test(url.pathname)) return null;
   if (request.headers.has("origin") && !corsOrigin(request, env))
     return errorResponse(request, env, 403, "Origin not allowed");
   if (request.method === "OPTIONS")
@@ -364,6 +366,13 @@ export async function handleApi(
   if (url.pathname === "/api/v1/events" && request.method === "POST")
     return ingestEvents(request, env);
   if (url.pathname === "/api/v1/fan-outs" && request.method === "POST")
+    return errorResponse(
+      request,
+      env,
+      410,
+      "Fan-out API v1 has been retired; use /api/v2/fan-outs",
+    );
+  if (url.pathname === "/api/v2/fan-outs" && request.method === "POST")
     return fanOuts(request, env, ctx);
   if (url.pathname === "/api/v1/donations" && request.method === "DELETE")
     return deleteDonationEvents(request, env);
@@ -469,7 +478,7 @@ export async function runDailyMaintenance(
       "DELETE FROM fanout_daily_usage WHERE usage_date < date(?, '-14 days')",
     ).bind(aggregateDate),
     env.DB.prepare(
-      "DELETE FROM fanout_runs WHERE created_at < datetime(?, '-13 months')",
+      "DELETE FROM fanout_runs_v2 WHERE created_at < datetime(?, '-13 months')",
     ).bind(runAt),
   ]);
   console.log(

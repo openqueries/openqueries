@@ -62,27 +62,28 @@ export const fanOutDailyUsage = sqliteTable(
   ],
 );
 
-export const fanOutRuns = sqliteTable(
-  "fanout_runs",
+export const fanOutRunsV2 = sqliteTable(
+  "fanout_runs_v2",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
     requestId: text("request_id").notNull(),
     donorTag: text("donor_tag").notNull(),
     platform: text("platform").notNull(),
     seedHash: text("seed_hash").notNull(),
-    generatorModel: text("generator_model").notNull(),
-    scorerModel: text("scorer_model").notNull(),
+    method: text("method").notNull(),
+    model: text("model").notNull(),
+    promptVersion: text("prompt_version").notNull(),
+    sampleCount: integer("sample_count"),
     candidateCount: integer("candidate_count").notNull(),
     durationMs: integer("duration_ms").notNull(),
-    generatorInputTokens: integer("generator_input_tokens"),
-    generatorOutputTokens: integer("generator_output_tokens"),
-    scorerInputTokens: integer("scorer_input_tokens"),
-    scorerOutputTokens: integer("scorer_output_tokens"),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
     createdAt: text("created_at").notNull(),
   },
   (table) => [
-    uniqueIndex("fanout_runs_request_unique").on(table.requestId),
-    index("fanout_runs_time_idx").on(table.createdAt),
+    uniqueIndex("fanout_runs_v2_request_unique").on(table.requestId),
+    index("fanout_runs_v2_time_idx").on(table.createdAt),
+    index("fanout_runs_v2_donor_idx").on(table.donorTag),
   ],
 );
 

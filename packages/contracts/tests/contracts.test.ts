@@ -3,7 +3,8 @@ import test from "node:test";
 
 import {
   DonationBatchV1Schema,
-  FanOutRequestV1Schema,
+  FanOutRequestV2Schema,
+  FanOutResponseV2Schema,
   QueryObservationV1Schema,
 } from "../src/index";
 
@@ -49,8 +50,8 @@ test("rejects conversation metadata and unsupported source kinds", () => {
 });
 
 test("fan-out requests accept one explicit seed only", () => {
-  const parsed = FanOutRequestV1Schema.parse({
-    schemaVersion: 1,
+  const parsed = FanOutRequestV2Schema.parse({
+    schemaVersion: 2,
     requestId: "f814c9fd-a0d9-4f7d-9ba9-b3915ec15523",
     donorTag: "b".repeat(64),
     platform: "google",
@@ -60,4 +61,33 @@ test("fan-out requests accept one explicit seed only", () => {
     },
   });
   assert.equal(parsed.platform, "google");
+});
+
+test("fan-out responses expose native evidence without a shared scorer", () => {
+  const parsed = FanOutResponseV2Schema.parse({
+    schemaVersion: 2,
+    requestId: "f814c9fd-a0d9-4f7d-9ba9-b3915ec15523",
+    sourceQuery: "best accounting software",
+    platform: "chatgpt",
+    method: "provider_native_logprobs",
+    model: "gpt-5.6-luna",
+    promptVersion: "fanout-v2.0.0",
+    generatedAt: "2026-08-09T08:00:00.000Z",
+    fanOuts: [
+      {
+        query: "accounting software comparison",
+        rank: 1,
+        provenance: "estimated",
+        score: {
+          kind: "native_inverse_perplexity",
+          value: 0.8,
+          meanTokenLogProbability: -0.223143551,
+          perplexity: 1.25,
+          tokenCount: 3,
+        },
+      },
+    ],
+  });
+  assert.equal(parsed.model, "gpt-5.6-luna");
+  assert.equal("scorerModel" in parsed, false);
 });

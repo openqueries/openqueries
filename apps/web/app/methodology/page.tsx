@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { EditorialPage } from "../components";
 import { pageMetadata } from "@/lib/site";
@@ -7,104 +8,165 @@ export const metadata: Metadata = pageMetadata({
   path: "/methodology",
   title: "Methodology",
   description:
-    "How Open Queries extracts, labels, scores, stores and aggregates AI web-search queries.",
+    "The provider-native statistical method Open Queries uses to observe and estimate AI search fan-out queries.",
 });
 
 export default function MethodologyPage() {
   return (
     <EditorialPage
-      eyebrow="Methodology · Version 1.0"
-      title="Evidence before inference."
-      intro="Open Queries is designed to show useful retrieval signals without implying access to hidden reasoning or collecting the conversations around them."
+      eyebrow="Methodology · fanout-v2.0.0"
+      title="Measure what the provider actually exposes."
+      intro="Open Queries separates direct UI observations from probabilistic reconstructions. It never routes every provider through one GPT ranker. A score is not search volume."
     >
       <section>
-        <h2>1. Eligible observations</h2>
+        <h2>1. Observation boundary</h2>
         <p>
-          An observation is accepted only when a provider adapter finds a query
-          inside an explicitly search-scoped interface element. Eligible source
-          kinds are observed model searches, observed expanded queries and the
-          disclosed Google Search seed exception.
+          An observed query enters the local trace only when a provider adapter
+          finds it inside an explicitly search-scoped interface element. Generic
+          message containers are ineligible. Chat messages, titles, account
+          identity, conversation URLs and conversation IDs do not exist in the
+          event schema.
         </p>
         <div className="method-table">
           <div>
-            <strong>Observed model search</strong>
-            <span>
-              A search string surfaced by ChatGPT or Claude tool activity.
-            </span>
+            <strong>observed_model_search</strong>
+            <span>A search string surfaced by ChatGPT or Claude tool UI.</span>
           </div>
           <div>
-            <strong>Observed expanded query</strong>
-            <span>
-              A fan-out or query expansion visibly exposed by the provider UI.
-            </span>
+            <strong>observed_expanded_query</strong>
+            <span>A query expansion explicitly exposed by the provider.</span>
           </div>
           <div>
-            <strong>Google user search</strong>
-            <span>
-              The query in Google Search, treated as a narrow and explicit
-              exception.
-            </span>
+            <strong>google_user_search</strong>
+            <span>The disclosed Google Search seed-query exception.</span>
           </div>
         </div>
-      </section>
-      <section>
-        <h2>2. Excluded context</h2>
         <p>
-          Adapters do not read generic message containers. Chat messages,
-          conversation titles, account identity, chat URLs and conversation IDs
-          are absent from the shared schema and rejected if added as extra
-          fields.
-        </p>
-        <p>
-          If a provider changes its DOM so the explicit search boundary is no
-          longer recognizable, the adapter should stop collecting and report
-          that it may be outdated.
+          If an adapter can no longer recognize that boundary, it fails closed.
+          Estimation is a separate user-triggered action and never mutates an
+          observed event into an estimate.
         </p>
       </section>
+
       <section>
-        <h2>3. Fan-out estimation</h2>
+        <h2>2. Controlled generation experiment</h2>
         <p>
-          Estimation runs only after the user requests it. A low-cost model from
-          the corresponding provider proposes a bounded candidate list. A shared
-          low-cost scorer returns the same candidates in likelihood order with
-          token log probabilities.
+          For a seed query <i>x</i>, provider model <i>m</i>, prompt <i>p</i>{" "}
+          and prompt version <i>v</i>, the model produces one structured vector
+          of exactly 12 candidate queries:
         </p>
         <div className="formula">
-          <code>likelihood score = exp(mean token log probability)</code>
+          <code>Y = (q₁, …, q₁₂) ~ Pₘ(· | x, p, v)</code>
           <span>
-            The value ranks candidates within one model run. It is not search
-            volume and does not prove that the original assistant issued the
-            query.
+            The prompt asks only for distinct web-search queries in the seed
+            language. It contains no categories, rationales, scoring rubric or
+            rank instructions.
           </span>
         </div>
-      </section>
-      <section>
-        <h2>4. Donation and aggregation</h2>
         <p>
-          Donation is presented as a default-on choice during first-run
-          onboarding and can be disabled before continuing or later in Settings.
-          Sensitive-pattern filters run in the browser and again at the Worker
-          boundary.
+          Candidates are normalized with NFKC, whitespace normalization and
+          exact case-folded deduplication. Unsafe strings are removed. No model
+          is allowed to score another provider’s candidate set.
+        </p>
+      </section>
+
+      <section>
+        <h2>3. Native token log probabilities where exposed</h2>
+        <p>
+          GPT-5.6 Luna returns token log probabilities for the same structured
+          output that contains the candidates. For a query <i>q</i>, let
+          <i>T(q)</i> be the set of output tokens whose UTF-8 byte interval
+          overlaps that query’s JSON string content. Every token is included
+          once; token length does not create extra weight.
+        </p>
+        <div className="formula stack">
+          <code>ℓ̄(q) = (1 / |T(q)|) Σₜ∈T(q) log Pₘ(t | t&lt;t, x, p, v)</code>
+          <code>PP(q) = exp(−ℓ̄(q))</code>
+          <code>s(q) = PP(q)⁻¹ = exp(ℓ̄(q))</code>
+          <span>
+            Lower perplexity implies greater compatibility with that provider’s
+            own decoding distribution in this run. The API exposes the mean log
+            probability, perplexity, inverse perplexity and token count.
+          </span>
+        </div>
+        <p>
+          The system fails closed if fewer than six candidates can be mapped to
+          finite native token logprobs. It does not substitute another provider
+          or an ordinal fallback. The inverse-perplexity score is a ranking
+          statistic for one conditional generation—not an independent
+          probability that the original assistant searched that query.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Google and Anthropic: empirical native sampling</h2>
+        <p>
+          Anthropic’s public API does not expose output token logprobs for
+          Claude. Google’s current Gemini 3.1 Flash-Lite Developer API endpoint
+          rejects <code>responseLogprobs</code> even though the field exists in
+          the API schema. Open Queries therefore reports a different estimator
+          instead of silently using GPT. Each provider model receives the same
+          versioned prompt in 16 independent structured-output calls. At least
+          12 must succeed.
+        </p>
+        <div className="formula stack">
+          <code>K(q) = Σᵢ₌₁ⁿ 𝟙[q ∈ Yᵢ]</code>
+          <code>p̂(q) = K(q) / n</code>
+          <code>CI₉₅ = (p̂ + z²/2n ± z√(p̂(1−p̂)/n + z²/4n²)) / (1 + z²/n)</code>
+          <span>
+            Here z = 1.95996 and n is the number of valid samples from the named
+            provider. Queries rank by inclusion frequency, then mean first
+            position, then lexical order.
+          </span>
+        </div>
+        <p>
+          Exact normalized matches are counted once per sample. The score object
+          exposes K, n and its Wilson 95% confidence interval, making the wider
+          uncertainty at n ≤ 16 explicit.
+        </p>
+      </section>
+
+      <section>
+        <h2>5. Provenance and aggregation</h2>
+        <p>
+          Every estimate carries its provider model, method and prompt version.
+          The side panel leads with ordinal rank and keeps the mathematical
+          evidence behind an expandable detail control. It never formats these
+          values as demand percentages.
         </p>
         <p>
-          Raw events expire after 13 months. Durable daily aggregates are
-          created only when a normalized query is present across at least five
+          Donation is controllable during onboarding and in Settings. Raw events
+          expire after 13 months. Durable daily aggregates require at least five
           distinct anonymous donor tags. Estimated fan-outs never enter
           observed-query aggregates.
         </p>
       </section>
+
       <section>
-        <h2>5. Known limits</h2>
+        <h2>6. Limits and interpretation</h2>
         <ul>
-          <li>Visible tool activity may be incomplete.</li>
-          <li>Provider UI changes can temporarily break an adapter.</li>
-          <li>Likelihood scores are model-dependent and non-deterministic.</li>
+          <li>Visible tool activity can be incomplete.</li>
+          <li>Provider UI changes can temporarily disable an adapter.</li>
           <li>
-            Observed query frequency is not representative population search
-            volume.
+            Generation and sampling are stochastic and model-version specific.
           </li>
-          <li>The initial public website does not publish a query explorer.</li>
+          <li>
+            Tokenization makes scores comparable mainly within a provider run.
+          </li>
+          <li>
+            Empirical Gemini and Claude intervals are deliberately wide at 12–16
+            samples.
+          </li>
+          <li>Observed query frequency is not population search volume.</li>
         </ul>
+        <p>
+          For assumptions, derivations and alternatives, read the technical
+          note:{" "}
+          <Link href="/learn/estimating-fan-out-queries-with-log-probabilities">
+            Estimating fan-out queries with log probabilities
+          </Link>
+          .
+        </p>
       </section>
     </EditorialPage>
   );

@@ -51,8 +51,25 @@ export async function readState(): Promise<ExtensionState> {
     await writeState(initial);
     return initial;
   }
-  const next = { ...state, events: pruneEvents(state.events ?? []) };
-  if (next.events.length !== (state.events ?? []).length)
+  const pruned = pruneEvents(state.events ?? []);
+  let migrated = false;
+  const events = pruned.map((event) => {
+    if (
+      !event.fanOuts?.length ||
+      event.fanOuts.every(
+        (candidate) =>
+          candidate &&
+          typeof candidate === "object" &&
+          "score" in candidate &&
+          candidate.score,
+      )
+    )
+      return event;
+    migrated = true;
+    return { ...event, fanOuts: undefined, fanOutGeneratedAt: undefined };
+  });
+  const next = { ...state, events };
+  if (migrated || next.events.length !== (state.events ?? []).length)
     await writeState(next);
   return next;
 }

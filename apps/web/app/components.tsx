@@ -1,10 +1,42 @@
+import {
+  Activity,
+  ChevronRight,
+  History,
+  Search,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import type { SimpleIcon } from "simple-icons";
+import { siAnthropic, siGithub, siGooglechrome } from "simple-icons";
+
+export function BrandIcon({
+  icon,
+  size = 16,
+}: {
+  icon: SimpleIcon;
+  size?: number;
+}) {
+  return (
+    <svg
+      aria-hidden="true"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d={icon.path} />
+    </svg>
+  );
+}
 
 export function Brand() {
   return (
     <Link className="brand" href="/">
-      <span className="brand-mark">OQ</span>
+      <span className="brand-mark">
+        <Activity size={16} strokeWidth={2.25} />
+      </span>
       <span>Open Queries</span>
     </Link>
   );
@@ -19,10 +51,17 @@ export function SiteShell({ children }: { children: ReactNode }) {
           <nav aria-label="Main navigation">
             <Link href="/methodology">Methodology</Link>
             <Link href="/learn">Learn</Link>
-            <Link href="/open-source">Open source</Link>
-            <a className="nav-cta" href="/#install">
-              Get the extension <span>↗</span>
+            <a
+              aria-label="Open Queries on GitHub"
+              className="nav-icon"
+              href="https://github.com/openqueries/openqueries"
+            >
+              <BrandIcon icon={siGithub} size={17} />
             </a>
+            <Link className="nav-cta" href="/install">
+              <BrandIcon icon={siGooglechrome} size={15} />
+              Get extension
+            </Link>
           </nav>
         </div>
       </header>
@@ -30,17 +69,18 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <footer className="site-footer">
         <div>
           <Brand />
-          <p>Make AI search transparent.</p>
+          <p>Open infrastructure for transparent AI search.</p>
         </div>
         <div className="footer-links">
           <Link href="/methodology">Methodology</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
-          <Link href="/open-source">AGPL source</Link>
+          <Link href="/open-source">Open source</Link>
+          <a href="https://github.com/openqueries/openqueries">GitHub</a>
         </div>
         <p className="footer-note">
-          Independent open-source research infrastructure. Not affiliated with
-          OpenAI, Anthropic or Google.
+          Independent and open source. Not affiliated with OpenAI, Anthropic or
+          Google.
         </p>
       </footer>
     </>
@@ -49,60 +89,74 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
 export function QueryInterface() {
   const searches = [
-    ["01", "expense management tools for European startups", "91%"],
-    ["02", "best corporate card software multi entity", "84%"],
-    ["03", "expense software pricing comparison 2026", "77%"],
+    "expense management software comparison Europe",
+    "corporate cards multi entity expense controls",
+    "expense platform pricing for growing teams",
   ];
   return (
     <aside
       className="query-interface"
-      aria-label="Illustration of the Open Queries side panel"
+      aria-label="Preview of the Open Queries Chrome side panel"
     >
       <div className="interface-top">
         <div>
-          <span className="interface-logo">OQ</span>
+          <span className="interface-logo">
+            <Activity size={15} />
+          </span>
           <strong>Open Queries</strong>
         </div>
         <small>
-          <i /> Donating
+          <i /> Local only
         </small>
       </div>
       <div className="interface-title">
         <span>Live query trace</span>
         <h2>What the model searched</h2>
+        <b>1</b>
       </div>
       <article className="interface-query">
         <div className="query-source">
-          <span>C</span>
+          <span>
+            <BrandIcon icon={siAnthropic} size={12} />
+          </span>
           <strong>Claude</strong>
           <small>14:32</small>
           <em>Observed</em>
         </div>
         <p>best expense management platforms for growing teams</p>
-        <button>✦ Estimate fan-outs</button>
+        <button>
+          <Search size={13} /> Estimate fan-outs
+        </button>
         <div className="interface-fanouts">
           <header>
             <span>Estimated fan-outs</span>
-            <small>Model likelihood</small>
+            <small>Rank · evidence</small>
           </header>
-          {searches.map(([rank, query, score]) => (
-            <div key={rank}>
-              <small>{rank}</small>
+          {searches.map((query, index) => (
+            <div key={query}>
+              <small>{String(index + 1).padStart(2, "0")}</small>
               <span>{query}</span>
-              <strong>{score}</strong>
+              <ChevronRight size={14} />
             </div>
           ))}
+          <p>
+            Estimated, not observed. Open scoring details for the underlying
+            evidence.
+          </p>
         </div>
       </article>
+      <div className="interface-privacy">
+        <ShieldCheck size={13} /> Queries only. Conversations are never read.
+      </div>
       <div className="interface-nav">
-        <span>
-          ⌁<small>Current</small>
+        <span className="active">
+          <Activity size={16} /> <small>Current</small>
         </span>
         <span>
-          ◷<small>History</small>
+          <History size={16} /> <small>History</small>
         </span>
         <span>
-          ⚙<small>Settings</small>
+          <Settings size={16} /> <small>Settings</small>
         </span>
       </div>
     </aside>

@@ -1,7 +1,7 @@
 import {
-  FanOutResponseV1Schema,
+  FanOutResponseV2Schema,
   type DonationBatchV1,
-  type FanOutRequestV1,
+  type FanOutRequestV2,
   type QueryObservationV1,
 } from "@openqueries/contracts";
 
@@ -36,12 +36,12 @@ export async function donateEvents(
   });
 }
 
-export async function estimateFanOuts(request: FanOutRequestV1) {
-  const response = await apiFetch("/api/v1/fan-outs", {
+export async function estimateFanOuts(request: FanOutRequestV2) {
+  const response = await apiFetch("/api/v2/fan-outs", {
     method: "POST",
     body: JSON.stringify(request),
   });
-  return FanOutResponseV1Schema.parse(await response.json());
+  return FanOutResponseV2Schema.parse(await response.json());
 }
 
 export async function deleteDonations(deletionSecret: string): Promise<void> {

@@ -23,6 +23,7 @@ test("ships stable SEO, methodology and legal surfaces", () => {
     "app/terms/page.tsx",
     "app/open-source/page.tsx",
     "app/learn/page.tsx",
+    "app/install/page.tsx",
   ]) {
     assert.ok(read(path).length > 100, path);
   }
@@ -40,4 +41,14 @@ test("methodology never treats estimated fan-outs as observed demand", () => {
     /Estimated fan-outs never enter\s+observed-query aggregates/u,
   );
   assert.match(method, /not search\s+volume/u);
+  assert.match(method, /GPT-5\.6 Luna/u);
+  assert.match(method, /Wilson 95% confidence interval/u);
+  assert.doesNotMatch(method, /shared\s+low-cost scorer/u);
+});
+
+test("publishes the full technical estimator article", () => {
+  const learn = read("lib/learn.ts");
+  assert.match(learn, /estimating-fan-out-queries-with-log-probabilities/u);
+  assert.match(learn, /UTF-8 byte offsets/u);
+  assert.match(learn, /CI₉₅/u);
 });

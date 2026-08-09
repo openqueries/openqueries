@@ -41,6 +41,79 @@ function kindLabel(event: LocalQueryEvent) {
   return "Observed";
 }
 
+function FanOutRow({
+  fanOut,
+  eventId,
+}: {
+  fanOut: NonNullable<LocalQueryEvent["fanOuts"]>[number];
+  eventId: string;
+}) {
+  const [details, setDetails] = useState(false);
+  const score = fanOut.score;
+  return (
+    <div className="fanout-item">
+      <div className="fanout-row">
+        <span className="fanout-rank">
+          {String(fanOut.rank).padStart(2, "0")}
+        </span>
+        <span>{fanOut.query}</span>
+        <button
+          className="score-details-button"
+          aria-expanded={details}
+          aria-label={`Show scoring details for ${fanOut.query}`}
+          onClick={() => setDetails((value) => !value)}
+        >
+          {details ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </button>
+      </div>
+      {details ? (
+        <dl className="score-details" id={`${eventId}:${fanOut.rank}`}>
+          {score.kind === "native_inverse_perplexity" ? (
+            <>
+              <div>
+                <dt>Method</dt>
+                <dd>Native token logprobs</dd>
+              </div>
+              <div>
+                <dt>Mean log p</dt>
+                <dd>{score.meanTokenLogProbability.toFixed(4)}</dd>
+              </div>
+              <div>
+                <dt>Perplexity</dt>
+                <dd>{score.perplexity.toFixed(3)}</dd>
+              </div>
+              <div>
+                <dt>Tokens</dt>
+                <dd>{score.tokenCount}</dd>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <dt>Method</dt>
+                <dd>Repeated native samples</dd>
+              </div>
+              <div>
+                <dt>Included</dt>
+                <dd>
+                  {score.occurrences}/{score.sampleCount} samples
+                </dd>
+              </div>
+              <div>
+                <dt>Wilson 95% CI</dt>
+                <dd>
+                  {score.confidence95.lower.toFixed(3)}–
+                  {score.confidence95.upper.toFixed(3)}
+                </dd>
+              </div>
+            </>
+          )}
+        </dl>
+      ) : null}
+    </div>
+  );
+}
+
 function QueryCard({
   event,
   onEstimate,
@@ -99,23 +172,18 @@ function QueryCard({
         <div className="fanout-list">
           <div className="fanout-heading">
             <span>Estimated fan-outs</span>
-            <small>Model likelihood</small>
+            <small>Rank · evidence</small>
           </div>
           {event.fanOuts.map((fanOut) => (
-            <div
-              className="fanout-row"
+            <FanOutRow
               key={`${event.eventId}:${fanOut.query}`}
-            >
-              <span className="fanout-rank">
-                {String(fanOut.rank).padStart(2, "0")}
-              </span>
-              <span>{fanOut.query}</span>
-              <strong>{Math.round(fanOut.likelihoodScore * 100)}%</strong>
-            </div>
+              fanOut={fanOut}
+              eventId={event.eventId}
+            />
           ))}
           <p className="estimate-disclaimer">
-            Estimated, not observed. Scores rank this model run and are not
-            search volume.
+            Estimated, not observed. Rank is based on provider-native evidence,
+            never search volume.
           </p>
         </div>
       ) : null}
