@@ -36,6 +36,7 @@ test("ships stable SEO, methodology and legal surfaces", () => {
   }
   assert.match(read("app/math.tsx"), /renderToString/u);
   assert.match(read("app/math.tsx"), /htmlAndMathml/u);
+  assert.match(read("worker/index.ts"), /font-src 'self' data:/u);
   assert.match(
     read("public/.well-known/security.txt"),
     /Contact: mailto:security@openqueries\.org/u,
