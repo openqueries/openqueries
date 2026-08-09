@@ -6,14 +6,13 @@ Open Queries is one monorepo with four trust boundaries:
 Provider search-tool signal
   -> fail-closed, provider-specific Plasmo adapter
   -> Chrome side panel + 30-day local history
-       -> every eligible observation while contribution is enabled -> Queue -> D1 raw events
+       -> every eligible observation while contribution is enabled -> D1 raw events
        -> contribution enabled + explicit fan-out request -> Cloudflare Worker
             -> ChatGPT: gpt-5.6-luna structured output + native token logprobs
             -> Google: gemini-3.1-flash-lite, 16 native samples + Wilson interval
             -> Claude: claude-haiku-4-5, 16 native samples + Wilson interval
             -> rank-first result with expandable mathematical evidence
 
-D1 raw events -> daily k-anonymous aggregation (at least 5 donor tags)
 Website       -> mission, install, methodology, privacy, legal and learning pages
 ```
 
@@ -58,53 +57,40 @@ headers while bodies are still streaming; Gemini uses six-request batches.
 Transport concurrency does not alter the sample count or estimator. There is
 no shared GPT scorer, cross-provider fallback, ordinal pseudo-score or character
 weighting. The actual method, model and prompt version travel with every V2
-response and D1 metadata row.
+response.
 
 ## Worker boundary
 
-The Worker exposes the retained observation and privacy endpoints plus V2 fan-out
-estimation:
+The Worker exposes three product endpoints:
 
-- `GET /api/v1/config`
 - `POST /api/v1/events`
 - `POST /api/v2/fan-outs`
 - `DELETE /api/v1/donations`
-- `POST /api/v1/fan-outs` returns HTTP 410
 
 Anonymous fan-out calls are limited to ten per donor tag per UTC day and five
-per source IP per minute. Fan-out metadata stores only a normalized seed hash,
-method, model, prompt version, sample count, duration, token counts and candidate
-count—not the seed or candidates.
-
-Donation deletion writes a 13-month donor tombstone before removing raw events,
-fan-out metadata and quota rows. The queue consumer checks tombstones so an
-already queued event cannot reappear after deletion.
+per source IP per minute. Donations are validated and written directly to D1.
+Deletion removes the installation's raw events and quota rows directly.
 
 ## Retention
 
 - Local extension history: 30 days, maximum 2,000 events.
-- Raw D1 events and fan-out metadata: 13 months.
-- Deletion tombstones: 13 months.
-- Daily aggregates: durable only after at least five distinct donor tags.
-- Estimated fan-outs: excluded from observed-query aggregation.
+- Raw D1 events: 13 months.
+- Quota rows: 14 days.
+- Estimated fan-outs: returned to the extension, not stored as observations.
 
 ## Cloudflare provisioning
 
 The current preview resources were provisioned in the EU jurisdiction on
 2026-08-09:
 
-1. D1 database `openqueries-db` and queues `openqueries-donations` plus
-   `openqueries-donations-dlq` are bound in `apps/web/wrangler.jsonc`.
+1. D1 database `openqueries-db` is bound in `apps/web/wrangler.jsonc`.
 2. The provisioned D1 `database_id` stays in Wrangler config; introduce a
    separate database and environment before adding a staging split.
 3. `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` and `GEMINI_API_KEY` are Cloudflare
    secrets, never plain Wrangler variables or extension assets.
-4. `GEMINI_SCORING_METHOD` makes the deployed Google evidence path explicit.
-   Switch it to `logprobs` only after the configured Google endpoint is verified
-   to return chosen-token log probabilities.
-5. Set `ALLOWED_EXTENSION_IDS` to the stable Chrome extension ID before public
+4. Set `ALLOWED_EXTENSION_IDS` to the stable Chrome extension ID before public
    distribution.
-6. Apply remote D1 migrations, run `pnpm check`, deploy from cumulative `main`
+5. Apply remote D1 migrations, run `pnpm check`, deploy from cumulative `main`
    and verify all retained routes plus every API endpoint.
 
 Credentials borrowed from another local project are test inputs only. New

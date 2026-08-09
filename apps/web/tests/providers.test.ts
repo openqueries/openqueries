@@ -24,7 +24,7 @@ test("uses a minimal fan-out reconstruction prompt without syntax heuristics", (
   );
 });
 
-test("reassembles Anthropic structured output and usage from SSE", () => {
+test("reassembles Anthropic structured output from SSE", () => {
   const stream = [
     'event: message_start\ndata: {"type":"message_start","message":{"usage":{"input_tokens":21,"output_tokens":1}}}',
     'event: content_block_start\ndata: {"type":"content_block_start","content_block":{"type":"text","text":""}}',
@@ -35,7 +35,6 @@ test("reassembles Anthropic structured output and usage from SSE", () => {
   ].join("\n\n");
   const output = anthropicStreamOutput(parseServerSentEventData(stream));
   assert.equal(output.text, '{"queries":["alpha beta"]}');
-  assert.deepEqual(output.usage, { input: 21, output: 17 });
 });
 
 test("can collect all 16 independent samples concurrently", async () => {
@@ -46,11 +45,10 @@ test("can collect all 16 independent samples concurrently", async () => {
     maximumActive = Math.max(maximumActive, active);
     await new Promise((resolve) => setTimeout(resolve, 5));
     active -= 1;
-    return { queries: ["candidate"], usage: { input: 1, output: 1 } };
+    return ["candidate"];
   }, 16);
   assert.equal(result.samples.length, 16);
   assert.equal(maximumActive, 16);
-  assert.deepEqual(result.usage, { input: 16, output: 16 });
 });
 
 test("maps UTF-8 token log-probabilities to each query exactly once", () => {

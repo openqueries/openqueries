@@ -230,11 +230,11 @@ async function main() {
   assert.equal(donationCalls.length, 2);
   const donatedEvents = donationCalls.flatMap(({ body }) => {
     assert.ok(body);
-    return (JSON.parse(body) as { events: Array<{ eventId: string }> }).events;
+    return [(JSON.parse(body) as { event: { eventId: string } }).event];
   });
   assert.ok(
     donationCalls.every(
-      ({ body }) => body && JSON.parse(body).events.length === 1,
+      ({ body }) => body && !Array.isArray(JSON.parse(body).event),
     ),
   );
   assert.deepEqual(

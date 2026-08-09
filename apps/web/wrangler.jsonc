@@ -23,20 +23,6 @@
       "migrations_dir": "drizzle",
     },
   ],
-  "queues": {
-    "producers": [
-      { "binding": "DONATION_QUEUE", "queue": "openqueries-donations" },
-    ],
-    "consumers": [
-      {
-        "queue": "openqueries-donations",
-        "dead_letter_queue": "openqueries-donations-dlq",
-        "max_batch_size": 50,
-        "max_batch_timeout": 5,
-        "max_retries": 10,
-      },
-    ],
-  },
   "ratelimits": [
     {
       "name": "FANOUT_RATE_LIMITER",
@@ -53,7 +39,6 @@
     "OPENAI_MODEL": "gpt-5.6-luna",
     "ANTHROPIC_MODEL": "claude-haiku-4-5-20251001",
     "GEMINI_MODEL": "gemini-3.1-flash-lite",
-    "GEMINI_SCORING_METHOD": "sampling",
   },
   "observability": {
     "enabled": true,

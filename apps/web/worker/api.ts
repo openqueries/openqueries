@@ -1,21 +1,15 @@
 import {
   DeleteDonationsV1Schema,
-  DonationBatchV1Schema,
+  DonationEventV1Schema,
   FanOutRequestV2Schema,
   type FanOutResponseV2,
-  type PublicConfigV1,
 } from "@openqueries/contracts";
-import {
-  normalizedQueryKey,
-  querySafety,
-  sha256Hex,
-} from "@openqueries/query-core";
+import { querySafety, sha256Hex } from "@openqueries/query-core";
 
-import type { AppEnv, DonationQueueMessage } from "./env";
+import type { AppEnv } from "./env";
 import { generateFanOuts } from "./providers";
 
 const RAW_RETENTION_MONTHS = 13;
-const AGGREGATE_DONOR_THRESHOLD = 5;
 const DAILY_FANOUT_LIMIT = 10;
 
 function corsOrigin(request: Request, env: AppEnv): string | null {
@@ -70,66 +64,53 @@ function addMonths(iso: string, months: number): string {
   return date.toISOString();
 }
 
-async function publicConfig(request: Request, env: AppEnv): Promise<Response> {
-  const payload: PublicConfigV1 = {
-    schemaVersion: 1,
-    supportedPlatforms: ["chatgpt", "claude", "google"],
-    dailyFanOutLimit: DAILY_FANOUT_LIMIT,
-    rawRetentionDays: 395,
-    aggregateDonorThreshold: AGGREGATE_DONOR_THRESHOLD,
-    minimumAdapterVersions: {
-      chatgpt: "1.0.0",
-      claude: "1.0.0",
-      google: "1.0.0",
-    },
-  };
-  return json(request, env, payload, 200, {
-    "cache-control": "public, max-age=300",
-  });
-}
-
 async function ingestEvents(request: Request, env: AppEnv): Promise<Response> {
-  const parsed = DonationBatchV1Schema.safeParse(
+  const parsed = DonationEventV1Schema.safeParse(
     await request.json().catch(() => null),
   );
   if (!parsed.success)
     return errorResponse(request, env, 400, "Invalid donation payload");
+  const event = parsed.data.event;
+  const safety = querySafety(event.query);
+  if (!safety.safe)
+    return errorResponse(
+      request,
+      env,
+      422,
+      "Query is not eligible for donation",
+    );
   const receivedAt = new Date().toISOString();
-  const messages: DonationQueueMessage[] = [];
-  let rejected = 0;
-  for (const event of parsed.data.events) {
-    const safety = querySafety(event.query);
-    if (!safety.safe) {
-      rejected += 1;
-      continue;
-    }
-    const normalizedQuery = normalizedQueryKey(
+  const result = await env.DB.prepare(
+    `
+      INSERT OR IGNORE INTO query_events (
+        event_id, donor_tag, platform, source_kind, query_text, language, locale,
+        captured_at, received_at, extension_version, adapter_version, expires_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+  )
+    .bind(
+      event.eventId,
+      parsed.data.donorTag,
+      event.platform,
+      event.sourceKind,
       event.query,
-      event.locale ?? "en",
-    );
-    messages.push({
-      schemaVersion: 1,
-      donorTag: parsed.data.donorTag,
-      event,
-      normalizedQuery,
-      queryHash: await sha256Hex(normalizedQuery),
+      event.language ?? null,
+      event.locale ?? null,
+      event.capturedAt,
       receivedAt,
-      expiresAt: addMonths(receivedAt, RAW_RETENTION_MONTHS),
-    });
-  }
-  if (messages.length) {
-    await env.DONATION_QUEUE.sendBatch(
-      messages.map((body) => ({ body, contentType: "json" })),
-    );
-  }
+      event.extensionVersion,
+      event.adapterVersion,
+      addMonths(receivedAt, RAW_RETENTION_MONTHS),
+    )
+    .run();
   console.log(
     JSON.stringify({
-      event: "donation_batch_queued",
-      accepted: messages.length,
-      rejected,
+      event: "donation_stored",
+      eventId: event.eventId,
+      inserted: (result.meta.changes ?? 0) > 0,
     }),
   );
-  return json(request, env, { accepted: messages.length, rejected }, 202, {
+  return json(request, env, { accepted: true }, 201, {
     "cache-control": "no-store",
   });
 }
@@ -160,11 +141,7 @@ function clientRateKey(request: Request): string {
   return request.headers.get("cf-connecting-ip") || "local-development";
 }
 
-async function fanOuts(
-  request: Request,
-  env: AppEnv,
-  ctx: ExecutionContext,
-): Promise<Response> {
+async function fanOuts(request: Request, env: AppEnv): Promise<Response> {
   const parsed = FanOutRequestV2Schema.safeParse(
     await request.json().catch(() => null),
   );
@@ -230,49 +207,6 @@ async function fanOuts(
       promptVersion: generated.promptVersion,
       generatedAt,
     };
-    const seedHashPromise = sha256Hex(
-      normalizedQueryKey(parsed.data.seed.query),
-    );
-    ctx.waitUntil(
-      seedHashPromise
-        .then((seedHash) =>
-          env.DB.prepare(
-            `
-      INSERT OR IGNORE INTO fanout_runs_v2 (
-        request_id, donor_tag, platform, seed_hash, method, model, prompt_version,
-        sample_count, candidate_count, duration_ms, input_tokens, output_tokens,
-        created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `,
-          )
-            .bind(
-              parsed.data.requestId,
-              parsed.data.donorTag,
-              parsed.data.platform,
-              seedHash,
-              generated.method,
-              generated.model,
-              generated.promptVersion,
-              generated.sampleCount,
-              generated.candidates.length,
-              Date.now() - started,
-              generated.usage.input,
-              generated.usage.output,
-              generatedAt,
-            )
-            .run(),
-        )
-        .catch((metadataError) => {
-          console.error(
-            JSON.stringify({
-              event: "fanout_metadata_write_failed",
-              requestId: parsed.data.requestId,
-              error:
-                metadataError instanceof Error ? metadataError.name : "unknown",
-            }),
-          );
-        }),
-    );
     console.log(
       JSON.stringify({
         event: "fanout_generated",
@@ -316,29 +250,17 @@ async function deleteDonationEvents(
   if (!parsed.success)
     return errorResponse(request, env, 400, "Invalid deletion request");
   const donorTag = await sha256Hex(parsed.data.deletionSecret);
-  const now = new Date().toISOString();
-  const expiresAt = addMonths(now, RAW_RETENTION_MONTHS);
-  const results = await env.DB.batch([
-    env.DB.prepare(
-      `
-      INSERT INTO deleted_donors (donor_tag, deleted_at, expires_at)
-      VALUES (?, ?, ?)
-      ON CONFLICT(donor_tag) DO UPDATE SET deleted_at = excluded.deleted_at, expires_at = excluded.expires_at
-    `,
-    ).bind(donorTag, now, expiresAt),
-    env.DB.prepare("DELETE FROM query_events WHERE donor_tag = ?").bind(
-      donorTag,
-    ),
-    env.DB.prepare("DELETE FROM fanout_runs_v2 WHERE donor_tag = ?").bind(
-      donorTag,
-    ),
-    env.DB.prepare("DELETE FROM fanout_daily_usage WHERE donor_tag = ?").bind(
-      donorTag,
-    ),
-  ]);
-  const deleted = results
-    .slice(1)
-    .reduce((sum, result) => sum + (result.meta.changes ?? 0), 0);
+  const events = await env.DB.prepare(
+    "DELETE FROM query_events WHERE donor_tag = ?",
+  )
+    .bind(donorTag)
+    .run();
+  const quota = await env.DB.prepare(
+    "DELETE FROM fanout_daily_usage WHERE donor_tag = ?",
+  )
+    .bind(donorTag)
+    .run();
+  const deleted = (events.meta.changes ?? 0) + (quota.meta.changes ?? 0);
   console.log(
     JSON.stringify({ event: "donor_data_deleted", deletedRows: deleted }),
   );
@@ -350,7 +272,6 @@ async function deleteDonationEvents(
 export async function handleApi(
   request: Request,
   env: AppEnv,
-  ctx: ExecutionContext,
 ): Promise<Response | null> {
   const url = new URL(request.url);
   if (!/^\/api\/v[12]\//u.test(url.pathname)) return null;
@@ -361,127 +282,28 @@ export async function handleApi(
       status: 204,
       headers: corsHeaders(request, env),
     });
-  if (url.pathname === "/api/v1/config" && request.method === "GET")
-    return publicConfig(request, env);
   if (url.pathname === "/api/v1/events" && request.method === "POST")
     return ingestEvents(request, env);
-  if (url.pathname === "/api/v1/fan-outs" && request.method === "POST")
-    return errorResponse(
-      request,
-      env,
-      410,
-      "Fan-out API v1 has been retired; use /api/v2/fan-outs",
-    );
   if (url.pathname === "/api/v2/fan-outs" && request.method === "POST")
-    return fanOuts(request, env, ctx);
+    return fanOuts(request, env);
   if (url.pathname === "/api/v1/donations" && request.method === "DELETE")
     return deleteDonationEvents(request, env);
   return errorResponse(request, env, 404, "API route not found");
 }
 
-export async function consumeDonationBatch(
-  batch: MessageBatch<DonationQueueMessage>,
-  env: AppEnv,
-): Promise<void> {
-  const donorTags = [
-    ...new Set(batch.messages.map((message) => message.body.donorTag)),
-  ];
-  const placeholders = donorTags.map(() => "?").join(",");
-  const deleted = donorTags.length
-    ? await env.DB.prepare(
-        `SELECT donor_tag FROM deleted_donors WHERE donor_tag IN (${placeholders})`,
-      )
-        .bind(...donorTags)
-        .all<{ donor_tag: string }>()
-    : { results: [] };
-  const tombstones = new Set(
-    (deleted.results ?? []).map((row) => row.donor_tag),
-  );
-  const statements = batch.messages
-    .filter((message) => !tombstones.has(message.body.donorTag))
-    .map((message) => {
-      const value = message.body;
-      return env.DB.prepare(
-        `
-        INSERT OR IGNORE INTO query_events (
-          event_id, donor_tag, platform, source_kind, query_text, normalized_query,
-          query_hash, language, locale, captured_at, received_at, extension_version,
-          adapter_version, parent_event_id, expires_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      ).bind(
-        value.event.eventId,
-        value.donorTag,
-        value.event.platform,
-        value.event.sourceKind,
-        value.event.query,
-        value.normalizedQuery,
-        value.queryHash,
-        value.event.language ?? null,
-        value.event.locale ?? null,
-        value.event.capturedAt,
-        value.receivedAt,
-        value.event.extensionVersion,
-        value.event.adapterVersion,
-        value.event.parentEventId ?? null,
-        value.expiresAt,
-      );
-    });
-  if (statements.length) await env.DB.batch(statements);
-  console.log(
-    JSON.stringify({
-      event: "donation_batch_consumed",
-      received: batch.messages.length,
-      insertedCandidates: statements.length,
-      tombstoned: batch.messages.length - statements.length,
-    }),
-  );
-}
-
-export async function runDailyMaintenance(
+export async function runRetentionMaintenance(
   env: AppEnv,
   scheduledTime: number,
 ): Promise<void> {
   const runAt = new Date(scheduledTime).toISOString();
-  const aggregateDate = new Date(scheduledTime - 24 * 60 * 60 * 1_000)
+  const usageCutoff = new Date(scheduledTime - 14 * 24 * 60 * 60 * 1_000)
     .toISOString()
     .slice(0, 10);
-  const start = `${aggregateDate}T00:00:00.000Z`;
-  const end = `${aggregateDate}T23:59:59.999Z`;
-  await env.DB.prepare(
-    `
-    INSERT INTO query_daily_aggregates (
-      aggregate_date, platform, source_kind, normalized_query, display_query,
-      query_hash, event_count, distinct_donor_count, created_at
-    )
-    SELECT ?, platform, source_kind, normalized_query, MIN(query_text), query_hash,
-      COUNT(*), COUNT(DISTINCT donor_tag), ?
-    FROM query_events
-    WHERE captured_at BETWEEN ? AND ?
-    GROUP BY platform, source_kind, normalized_query, query_hash
-    HAVING COUNT(DISTINCT donor_tag) >= ?
-    ON CONFLICT(aggregate_date, platform, source_kind, query_hash) DO UPDATE SET
-      event_count = excluded.event_count,
-      distinct_donor_count = excluded.distinct_donor_count,
-      display_query = excluded.display_query,
-      created_at = excluded.created_at
-  `,
-  )
-    .bind(aggregateDate, runAt, start, end, AGGREGATE_DONOR_THRESHOLD)
+  await env.DB.prepare("DELETE FROM query_events WHERE expires_at < ?")
+    .bind(runAt)
     .run();
-  await env.DB.batch([
-    env.DB.prepare("DELETE FROM query_events WHERE expires_at < ?").bind(runAt),
-    env.DB.prepare("DELETE FROM deleted_donors WHERE expires_at < ?").bind(
-      runAt,
-    ),
-    env.DB.prepare(
-      "DELETE FROM fanout_daily_usage WHERE usage_date < date(?, '-14 days')",
-    ).bind(aggregateDate),
-    env.DB.prepare(
-      "DELETE FROM fanout_runs_v2 WHERE created_at < datetime(?, '-13 months')",
-    ).bind(runAt),
-  ]);
-  console.log(
-    JSON.stringify({ event: "daily_maintenance_complete", aggregateDate }),
-  );
+  await env.DB.prepare("DELETE FROM fanout_daily_usage WHERE usage_date < ?")
+    .bind(usageCutoff)
+    .run();
+  console.log(JSON.stringify({ event: "retention_cleanup_complete" }));
 }

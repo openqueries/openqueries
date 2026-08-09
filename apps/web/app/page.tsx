@@ -157,8 +157,8 @@ export default function HomePage() {
             "No chat messages, titles, account identity or conversation URLs",
             "Query contribution starts off; enabling it unlocks fan-out estimates",
             "Sensitive-pattern filtering runs locally and at the Worker edge",
-            "Public aggregates require at least five anonymous donors",
-            "Estimated fan-outs never enter observed-query aggregates",
+            "Eligible observed queries are written directly to D1",
+            "Estimated fan-outs are never stored as observed queries",
           ].map((item) => (
             <li key={item}>
               <Check size={15} /> {item}

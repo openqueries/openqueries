@@ -132,7 +132,7 @@ export default function MethodologyPage() {
       </section>
 
       <section>
-        <h2>5. Provenance and aggregation</h2>
+        <h2>5. Provenance and retention</h2>
         <p>
           Every estimate carries its provider model, method and prompt version.
           The side panel leads with ordinal rank and keeps the mathematical
@@ -144,9 +144,8 @@ export default function MethodologyPage() {
           and in Settings. While enabled, every eligible observed query is
           automatically contributed, whether or not its fan-outs are requested.
           Fan-out estimation is available only while that contribution is
-          enabled. Raw events expire after 13 months. Durable daily aggregates
-          require at least five distinct anonymous donor tags. Estimated
-          fan-outs never enter observed-query aggregates.
+          enabled. Raw events expire after 13 months. Estimated fan-outs are
+          returned to the extension and never stored as observed queries.
         </p>
       </section>
 

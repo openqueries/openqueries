@@ -7,10 +7,8 @@ import type {
 
 export type LocalQueryEvent = QueryObservationV1 & {
   tabId: number | null;
-  uploadedAt?: string;
   donationBlockedReason?: string;
   fanOuts?: FanOutCandidateV2[];
-  fanOutGeneratedAt?: string;
 };
 
 export type ExtensionState = {
@@ -34,7 +32,6 @@ export type ObservationInput = {
   capturedAt: string;
   language?: string;
   locale?: string;
-  parentEventId?: string;
 };
 
 export type RuntimeRequest =

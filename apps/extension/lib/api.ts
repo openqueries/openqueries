@@ -1,5 +1,5 @@
 import type {
-  DonationBatchV1,
+  DonationEventV1,
   FanOutRequestV2,
   FanOutResponseV2,
   QueryObservationV1,
@@ -129,7 +129,7 @@ export async function donateEvent(
   donorTag: string,
   event: QueryObservationV1,
 ): Promise<void> {
-  const body: DonationBatchV1 = { schemaVersion: 1, donorTag, events: [event] };
+  const body: DonationEventV1 = { schemaVersion: 1, donorTag, event };
   await apiFetch("/api/v1/events", {
     method: "POST",
     body: JSON.stringify(body),

@@ -79,7 +79,7 @@ Registers the bundled ChatGPT document-start adapter in the page's main world so
 
 ### Site access
 
-Declared content scripts run only on ChatGPT, Claude and supported Google Search result pages. They read explicit search-tool UI or, on ChatGPT, explicit `search_queries` metadata. The `chatgpt.com` host permission is required to register that bundled main-world adapter. The `openqueries.org` host permission is used only for public configuration, optional query contribution, deletion and the user-requested fan-out API.
+Declared content scripts run only on ChatGPT, Claude and supported Google Search result pages. They read explicit search-tool UI or, on ChatGPT, explicit `search_queries` metadata. The `chatgpt.com` host permission is required to register that bundled main-world adapter. The `openqueries.org` host permission is used only for optional query contribution, deletion and the user-requested fan-out API.
 
 ### Remote code
 

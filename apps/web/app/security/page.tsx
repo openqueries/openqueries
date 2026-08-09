@@ -32,7 +32,7 @@ export default function SecurityPage() {
           <li>Extraction of chat messages or conversation metadata.</li>
           <li>Provider credentials present in an extension bundle or log.</li>
           <li>Cross-installation deletion or quota bypasses.</li>
-          <li>A tombstoned donation being stored after deletion.</li>
+          <li>A deleted donation remaining accessible after deletion.</li>
           <li>Sensitive-query filters that can be bypassed.</li>
         </ul>
       </section>

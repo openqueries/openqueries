@@ -22,15 +22,14 @@ export const QueryObservationV1Schema = z
     locale: z.string().trim().min(2).max(35).optional(),
     extensionVersion: z.string().trim().min(1).max(32),
     adapterVersion: z.string().trim().min(1).max(32),
-    parentEventId: z.string().min(8).max(128).optional(),
   })
   .strict();
 
-export const DonationBatchV1Schema = z
+export const DonationEventV1Schema = z
   .object({
     schemaVersion: z.literal(1),
     donorTag: z.string().regex(/^[a-f0-9]{64}$/),
-    events: z.array(QueryObservationV1Schema).min(1).max(50),
+    event: QueryObservationV1Schema,
   })
   .strict();
 
@@ -108,21 +107,10 @@ export const DeleteDonationsV1Schema = z
   })
   .strict();
 
-export const PublicConfigV1Schema = z
-  .object({
-    schemaVersion: z.literal(1),
-    supportedPlatforms: z.array(PlatformSchema),
-    dailyFanOutLimit: z.number().int().positive(),
-    rawRetentionDays: z.number().int().positive(),
-    aggregateDonorThreshold: z.number().int().positive(),
-    minimumAdapterVersions: z.record(PlatformSchema, z.string()),
-  })
-  .strict();
-
 export type Platform = z.infer<typeof PlatformSchema>;
 export type SourceKind = z.infer<typeof SourceKindSchema>;
 export type QueryObservationV1 = z.infer<typeof QueryObservationV1Schema>;
-export type DonationBatchV1 = z.infer<typeof DonationBatchV1Schema>;
+export type DonationEventV1 = z.infer<typeof DonationEventV1Schema>;
 export type FanOutRequestV2 = z.infer<typeof FanOutRequestV2Schema>;
 export type NativeInversePerplexityScore = z.infer<
   typeof NativeInversePerplexityScoreSchema
@@ -133,4 +121,3 @@ export type EmpiricalInclusionFrequencyScore = z.infer<
 export type FanOutCandidateV2 = z.infer<typeof FanOutCandidateV2Schema>;
 export type FanOutResponseV2 = z.infer<typeof FanOutResponseV2Schema>;
 export type DeleteDonationsV1 = z.infer<typeof DeleteDonationsV1Schema>;
-export type PublicConfigV1 = z.infer<typeof PublicConfigV1Schema>;

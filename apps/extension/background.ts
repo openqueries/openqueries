@@ -48,20 +48,12 @@ async function donateObservation(
     return state;
   const {
     tabId: _tabId,
-    uploadedAt: _uploadedAt,
     donationBlockedReason: _reason,
     fanOuts: _fanOuts,
-    fanOutGeneratedAt: _generatedAt,
     ...observation
   } = event;
   await donateEvent(state.donorTag, observation);
-  const uploadedAt = new Date().toISOString();
-  return {
-    ...state,
-    events: state.events.map((item) =>
-      item.eventId === event.eventId ? { ...item, uploadedAt } : item,
-    ),
-  };
+  return state;
 }
 
 async function addObservation(
@@ -167,7 +159,6 @@ async function handleRequest(
             ? {
                 ...item,
                 fanOuts: result.fanOuts,
-                fanOutGeneratedAt: result.generatedAt,
               }
             : item,
         ),

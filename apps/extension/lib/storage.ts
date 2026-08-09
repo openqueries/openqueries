@@ -1,4 +1,4 @@
-import { querySafety, sha256Hex } from "@openqueries/query-core";
+import { sha256Hex } from "@openqueries/query-core";
 
 import type { ExtensionState, LocalQueryEvent, PublicState } from "./types";
 
@@ -81,7 +81,7 @@ export async function readState(): Promise<ExtensionState> {
     )
       return event;
     migrated = true;
-    return { ...event, fanOuts: undefined, fanOutGeneratedAt: undefined };
+    return { ...event, fanOuts: undefined };
   });
   const next = { ...reconciled, events };
   if (
@@ -103,23 +103,10 @@ export async function rotateDonor(
   state: ExtensionState,
 ): Promise<ExtensionState> {
   const deletionSecret = randomHex();
-  const handledAt = new Date().toISOString();
   return {
     ...state,
     deletionSecret,
     donorTag: await sha256Hex(deletionSecret),
-    // Existing local history must not be re-donated under the rotated ID.
-    // New observations remain eligible after the deletion completes.
-    events: state.events.map((event) => {
-      const safety = querySafety(event.query);
-      return {
-        ...event,
-        uploadedAt: event.uploadedAt ?? handledAt,
-        donationBlockedReason:
-          event.donationBlockedReason ??
-          (safety.safe ? undefined : safety.reason),
-      };
-    }),
   };
 }
 

@@ -97,8 +97,5 @@ test("server deletion rotates the donor without re-donating existing local histo
   const rotated = await rotateDonor(state);
   assert.notEqual(rotated.donorTag, state.donorTag);
   assert.notEqual(rotated.deletionSecret, state.deletionSecret);
-  assert.ok(
-    rotated.events[0]?.uploadedAt,
-    "existing events are marked handled after deletion",
-  );
+  assert.deepEqual(rotated.events, state.events);
 });

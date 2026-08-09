@@ -15,7 +15,6 @@ const ANTHROPIC_STREAM_CONCURRENCY = 16;
 const GEMINI_CONCURRENCY = 6;
 const MINIMUM_NATIVE_CANDIDATES = 6;
 
-type Usage = { input: number; output: number };
 type TokenLogProbability = {
   token?: string;
   bytes?: number[] | null;
@@ -28,8 +27,6 @@ export type FanOutGeneration = {
   method: "provider_native_logprobs" | "provider_native_sampling";
   model: string;
   promptVersion: typeof FANOUT_PROMPT_VERSION;
-  usage: Usage;
-  sampleCount: number | null;
 };
 
 const structuredQuerySchema = {
@@ -145,26 +142,19 @@ async function providerEventStream(
 
 export function anthropicStreamOutput(events: unknown[]): {
   text: string;
-  usage: Usage;
 } {
   let text = "";
-  const usage: Usage = { input: 0, output: 0 };
   for (const value of events) {
     if (!value || typeof value !== "object") continue;
     const event = value as {
       type?: string;
       error?: { message?: string };
-      message?: { usage?: { input_tokens?: number; output_tokens?: number } };
       content_block?: { type?: string; text?: string };
       delta?: { type?: string; text?: string };
-      usage?: { output_tokens?: number };
     };
     if (event.type === "error")
       throw new Error(event.error?.message ?? "Anthropic stream failed");
-    if (event.type === "message_start") {
-      usage.input = event.message?.usage?.input_tokens ?? usage.input;
-      usage.output = event.message?.usage?.output_tokens ?? usage.output;
-    } else if (
+    if (
       event.type === "content_block_start" &&
       event.content_block?.type === "text"
     ) {
@@ -174,11 +164,9 @@ export function anthropicStreamOutput(events: unknown[]): {
       event.delta?.type === "text_delta"
     ) {
       text += event.delta.text ?? "";
-    } else if (event.type === "message_delta") {
-      usage.output = event.usage?.output_tokens ?? usage.output;
     }
   }
-  return { text, usage };
+  return { text };
 }
 
 function parseStructuredQueries(text: string): string[] {
@@ -235,42 +223,6 @@ function geminiText(payload: unknown): string {
   return (response.candidates?.[0]?.content?.parts ?? [])
     .map((part) => part.text ?? "")
     .join("");
-}
-
-function geminiTokens(payload: unknown): TokenLogProbability[] {
-  const response = payload as {
-    candidates?: Array<{
-      logprobsResult?: {
-        chosenCandidates?: Array<{
-          token?: string;
-          logProbability?: number;
-        }>;
-      };
-    }>;
-  };
-  return response.candidates?.[0]?.logprobsResult?.chosenCandidates ?? [];
-}
-
-function openAIUsage(payload: unknown): Usage {
-  const usage = (
-    payload as { usage?: { input_tokens?: number; output_tokens?: number } }
-  ).usage;
-  return { input: usage?.input_tokens ?? 0, output: usage?.output_tokens ?? 0 };
-}
-
-function geminiUsage(payload: unknown): Usage {
-  const usage = (
-    payload as {
-      usageMetadata?: {
-        promptTokenCount?: number;
-        candidatesTokenCount?: number;
-      };
-    }
-  ).usageMetadata;
-  return {
-    input: usage?.promptTokenCount ?? 0,
-    output: usage?.candidatesTokenCount ?? 0,
-  };
 }
 
 function tokenByteLength(token: TokenLogProbability): number {
@@ -386,61 +338,10 @@ async function generateOpenAI(
     method: "provider_native_logprobs",
     model,
     promptVersion: FANOUT_PROMPT_VERSION,
-    usage: openAIUsage(payload),
-    sampleCount: null,
   };
 }
 
-async function generateGeminiWithLogprobs(
-  env: AppEnv,
-  query: string,
-): Promise<FanOutGeneration> {
-  if (!env.GEMINI_API_KEY) throw new Error("Gemini provider is not configured");
-  const model = env.GEMINI_MODEL;
-  const payload = await providerFetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-    "gemini",
-    {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-goog-api-key": env.GEMINI_API_KEY,
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: generationPrompt(query) }],
-          },
-        ],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: geminiQuerySchema,
-          responseLogprobs: true,
-          logprobs: 1,
-          temperature: 1,
-          topP: 1,
-          maxOutputTokens: 650,
-        },
-      }),
-    },
-  );
-  const raw = geminiText(payload);
-  const queries = excludeSeed(parseStructuredQueries(raw), query);
-  return {
-    candidates: requireNativeCandidates(raw, queries, geminiTokens(payload)),
-    method: "provider_native_logprobs",
-    model,
-    promptVersion: FANOUT_PROMPT_VERSION,
-    usage: geminiUsage(payload),
-    sampleCount: null,
-  };
-}
-
-async function sampleClaude(
-  env: AppEnv,
-  query: string,
-): Promise<{ queries: string[]; usage: Usage }> {
+async function sampleClaude(env: AppEnv, query: string): Promise<string[]> {
   if (!env.ANTHROPIC_API_KEY)
     throw new Error("Anthropic provider is not configured");
   const events = await providerEventStream(
@@ -468,13 +369,10 @@ async function sampleClaude(
   const output = anthropicStreamOutput(events);
   const queries = excludeSeed(parseStructuredQueries(output.text), query);
   if (!queries.length) throw new Error("Anthropic returned no valid queries");
-  return { queries, usage: output.usage };
+  return queries;
 }
 
-async function sampleGemini(
-  env: AppEnv,
-  query: string,
-): Promise<{ queries: string[]; usage: Usage }> {
+async function sampleGemini(env: AppEnv, query: string): Promise<string[]> {
   if (!env.GEMINI_API_KEY) throw new Error("Gemini provider is not configured");
   const payload = await providerFetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(env.GEMINI_MODEL)}:generateContent`,
@@ -507,7 +405,7 @@ async function sampleGemini(
     query,
   );
   if (!queries.length) throw new Error("Gemini returned no valid queries");
-  return { queries, usage: geminiUsage(payload) };
+  return queries;
 }
 
 export function rankEmpiricalSamples(samples: string[][]): FanOutCandidateV2[] {
@@ -551,11 +449,10 @@ export function rankEmpiricalSamples(samples: string[][]): FanOutCandidateV2[] {
 }
 
 export async function collectEmpiricalSamples(
-  sample: () => Promise<{ queries: string[]; usage: Usage }>,
+  sample: () => Promise<string[]>,
   concurrency: number,
-): Promise<{ samples: string[][]; usage: Usage; failure?: string }> {
+): Promise<{ samples: string[][]; failure?: string }> {
   const samples: string[][] = [];
-  const usage: Usage = { input: 0, output: 0 };
   let failure: string | undefined;
   for (let offset = 0; offset < EMPIRICAL_SAMPLE_COUNT; offset += concurrency) {
     const batchSize = Math.min(concurrency, EMPIRICAL_SAMPLE_COUNT - offset);
@@ -571,19 +468,17 @@ export async function collectEmpiricalSamples(
               : "unknown provider error";
         continue;
       }
-      samples.push(result.value.queries);
-      usage.input += result.value.usage.input;
-      usage.output += result.value.usage.output;
+      samples.push(result.value);
     }
   }
-  return { samples, usage, failure };
+  return { samples, failure };
 }
 
 async function generateClaude(
   env: AppEnv,
   query: string,
 ): Promise<FanOutGeneration> {
-  const { samples, usage, failure } = await collectEmpiricalSamples(
+  const { samples, failure } = await collectEmpiricalSamples(
     () => sampleClaude(env, query),
     ANTHROPIC_STREAM_CONCURRENCY,
   );
@@ -596,8 +491,6 @@ async function generateClaude(
     method: "provider_native_sampling",
     model: env.ANTHROPIC_MODEL,
     promptVersion: FANOUT_PROMPT_VERSION,
-    usage,
-    sampleCount: samples.length,
   };
 }
 
@@ -605,9 +498,7 @@ async function generateGemini(
   env: AppEnv,
   query: string,
 ): Promise<FanOutGeneration> {
-  if (env.GEMINI_SCORING_METHOD === "logprobs")
-    return generateGeminiWithLogprobs(env, query);
-  const { samples, usage, failure } = await collectEmpiricalSamples(
+  const { samples, failure } = await collectEmpiricalSamples(
     () => sampleGemini(env, query),
     GEMINI_CONCURRENCY,
   );
@@ -620,8 +511,6 @@ async function generateGemini(
     method: "provider_native_sampling",
     model: env.GEMINI_MODEL,
     promptVersion: FANOUT_PROMPT_VERSION,
-    usage,
-    sampleCount: samples.length,
   };
 }
 

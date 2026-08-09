@@ -1,7 +1,7 @@
 import handler from "vinext/server/app-router-entry";
 
-import { consumeDonationBatch, handleApi, runDailyMaintenance } from "./api";
-import type { AppEnv, DonationQueueMessage } from "./env";
+import { handleApi, runRetentionMaintenance } from "./api";
+import type { AppEnv } from "./env";
 
 function securityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
@@ -33,7 +33,7 @@ const worker = {
       url.port = "";
       return Response.redirect(url.toString(), 308);
     }
-    const apiResponse = await handleApi(request, env, ctx);
+    const apiResponse = await handleApi(request, env);
     if (apiResponse) return securityHeaders(apiResponse);
     // The Cloudflare Vite binding also serves source CSS during `vinext dev`.
     // Production assets are fingerprinted under /assets; keeping this narrow
@@ -54,19 +54,13 @@ const worker = {
     }
     return securityHeaders(await handler.fetch(request, env, ctx));
   },
-  async queue(
-    batch: MessageBatch<DonationQueueMessage>,
-    env: AppEnv,
-  ): Promise<void> {
-    await consumeDonationBatch(batch, env);
-  },
   async scheduled(
     controller: ScheduledController,
     env: AppEnv,
     ctx: ExecutionContext,
   ): Promise<void> {
-    ctx.waitUntil(runDailyMaintenance(env, controller.scheduledTime));
+    ctx.waitUntil(runRetentionMaintenance(env, controller.scheduledTime));
   },
-} satisfies ExportedHandler<AppEnv, DonationQueueMessage>;
+} satisfies ExportedHandler<AppEnv>;
 
 export default worker;

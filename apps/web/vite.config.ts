@@ -14,7 +14,6 @@ export default defineConfig(async () => {
         config: {
           main: "./worker/index.ts",
           d1_databases: [],
-          queues: { producers: [], consumers: [] },
           r2_buckets: [],
         },
       }),

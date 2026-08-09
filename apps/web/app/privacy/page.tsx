@@ -70,10 +70,9 @@ export default function PrivacyPage() {
           candidates to a universal GPT ranker.
         </p>
         <p>
-          Raw donation events expire after 13 months. Anonymous daily aggregates
-          require five distinct donors. Cloudflare provides hosting, queueing
-          and D1 storage; OpenAI, Anthropic and Google process fan-out requests
-          for their respective roles.
+          Raw donation events expire after 13 months. Cloudflare provides
+          hosting and D1 storage; OpenAI, Anthropic and Google process fan-out
+          requests for their respective roles.
         </p>
       </section>
       <section>
@@ -82,8 +81,8 @@ export default function PrivacyPage() {
           Settings provides separate controls to clear local history, stop
           future donation and delete server-side events linked to the current
           installation. Server deletion rotates the installation's pseudonymous
-          donor identifier. Aggregates that have already passed the anonymity
-          threshold cannot be traced back to one installation.
+          donor identifier. Estimated fan-outs are not stored as observed
+          queries.
         </p>
       </section>
       <section>
