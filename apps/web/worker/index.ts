@@ -45,7 +45,11 @@ const worker = {
       url.searchParams.set("direct", "");
       return securityHeaders(await env.ASSETS.fetch(new Request(url, request)));
     }
-    if (/^\/(?:assets\/|favicon\.svg$|og\.(?:svg|png)$)/u.test(url.pathname)) {
+    if (
+      /^\/(?:assets\/|favicon\.svg$|og\.(?:svg|png)$|\.well-known\/security\.txt$)/u.test(
+        url.pathname,
+      )
+    ) {
       return securityHeaders(await env.ASSETS.fetch(request));
     }
     return securityHeaders(await handler.fetch(request, env, ctx));
