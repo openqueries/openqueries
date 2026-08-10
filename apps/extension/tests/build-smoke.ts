@@ -17,7 +17,7 @@ async function main() {
   };
 
   assert.equal(manifest.name, "Open Queries – AI Search Query Inspector");
-  assert.equal(manifest.version, "1.0.4");
+  assert.equal(manifest.version, "1.0.5");
   assert.equal(
     manifest.description,
     "See ChatGPT, Claude and Google AI search queries in a local side panel, then inspect likely fan-out queries on demand.",
@@ -60,6 +60,8 @@ async function main() {
   const panelBehaviorCalls: unknown[] = [];
   const installedListeners: Array<(details: { reason: string }) => void> = [];
   const messageListeners: unknown[] = [];
+  const injectedScripts: chrome.scripting.ScriptInjection<never[], unknown>[] =
+    [];
   const registeredMainWorldScripts: chrome.scripting.RegisteredContentScript[] =
     [];
   const eventId = "estimate-before-privacy-acceptance";
@@ -137,7 +139,17 @@ async function main() {
 
   const chromeMock = {
     runtime: {
-      getManifest: () => ({ version: "1.0.4" }),
+      getManifest: () => ({
+        version: "1.0.5",
+        content_scripts: [
+          { matches: ["https://chatgpt.com/*"], js: ["chatgpt.js"] },
+          { matches: ["https://claude.ai/*"], js: ["claude.js"] },
+          {
+            matches: ["https://www.google.com/search*"],
+            js: ["google.js"],
+          },
+        ],
+      }),
       onInstalled: {
         addListener: (listener: (details: { reason: string }) => void) =>
           installedListeners.push(listener),
@@ -153,7 +165,16 @@ async function main() {
       },
     },
     tabs: {
-      query: async () => [],
+      query: async (queryInfo: { url?: string[] }) => {
+        if (!queryInfo.url) return [];
+        if (queryInfo.url.some((url) => url.includes("chatgpt.com")))
+          return [{ id: 41, url: "https://chatgpt.com/" }];
+        if (queryInfo.url.some((url) => url.includes("claude.ai")))
+          return [{ id: 42, url: "https://claude.ai/" }];
+        if (queryInfo.url.some((url) => url.includes("google.")))
+          return [{ id: 43, url: "https://www.google.com/search?q=test" }];
+        return [];
+      },
     },
     storage: {
       local: {
@@ -180,6 +201,12 @@ async function main() {
         scripts: chrome.scripting.RegisteredContentScript[],
       ) => {
         registeredMainWorldScripts.push(...scripts);
+      },
+      executeScript: async (
+        injection: chrome.scripting.ScriptInjection<never[], unknown>,
+      ) => {
+        injectedScripts.push(injection);
+        return [];
       },
     },
   };
@@ -209,6 +236,39 @@ async function main() {
     new Set(registeredMainWorldScripts.map(({ id }) => id)),
     new Set(["contentsChatgptMain", "contentsClaudeMain"]),
     "worker startup updates the existing ChatGPT bridge and registers the missing Claude bridge",
+  );
+  assert.equal(
+    JSON.stringify(
+      injectedScripts.map(({ target, world, files }) => ({
+        tabId: target.tabId,
+        world,
+        files,
+      })),
+    ),
+    JSON.stringify([
+      {
+        tabId: 41,
+        world: "MAIN",
+        files: [
+          registeredMainWorldScripts.find(
+            ({ id }) => id === "contentsChatgptMain",
+          )!.js![0],
+        ],
+      },
+      { tabId: 41, world: "ISOLATED", files: ["chatgpt.js"] },
+      {
+        tabId: 42,
+        world: "MAIN",
+        files: [
+          registeredMainWorldScripts.find(
+            ({ id }) => id === "contentsClaudeMain",
+          )!.js![0],
+        ],
+      },
+      { tabId: 42, world: "ISOLATED", files: ["claude.js"] },
+      { tabId: 43, world: "ISOLATED", files: ["google.js"] },
+    ]),
+    "worker startup injects idempotent adapters into already-open provider tabs",
   );
 
   const listener = messageListeners[0] as (
@@ -335,7 +395,7 @@ async function main() {
       )
       .every(
         ({ extensionVersion, adapterVersion }) =>
-          extensionVersion === "1.0.4" && adapterVersion === "1.0.3",
+          extensionVersion === "1.0.5" && adapterVersion === "1.0.4",
       ),
   );
 

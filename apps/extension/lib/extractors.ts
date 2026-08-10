@@ -8,16 +8,6 @@ export type ExtractedQuery = {
   sourceKind: SourceKind;
 };
 
-const EXPLICIT_CONTAINER_SELECTOR = [
-  "[data-testid*='web-search' i]",
-  "[data-testid*='search-query' i]",
-  "[data-tool-name*='search' i]",
-  "[data-tool*='search' i]",
-  "[aria-label*='web search' i]",
-  "[aria-label*='searched for' i]",
-  "details[data-testid*='search' i]",
-].join(",");
-
 const QUERY_NODE_SELECTOR = [
   "[data-search-query]",
   "[data-query]",
@@ -60,108 +50,6 @@ function queryFromElement(element: Element, base: string): string {
       return text;
   }
   return "";
-}
-
-function isExplicitlySearchScoped(element: Element): boolean {
-  return Boolean(element.closest(EXPLICIT_CONTAINER_SELECTOR));
-}
-
-function addQuery(
-  output: ExtractedQuery[],
-  seen: Set<string>,
-  element: Element,
-  platform: "chatgpt" | "claude",
-  value: string,
-): void {
-  const query = normalizeQuery(value);
-  const key = query.toLocaleLowerCase();
-  if (!query || query.length > 500 || seen.has(key)) return;
-  seen.add(key);
-  output.push({
-    element,
-    platform,
-    query,
-    sourceKind: "observed_model_search",
-  });
-}
-
-function textLines(element: Element): string[] {
-  const rendered =
-    element instanceof element.ownerDocument.defaultView!.HTMLElement &&
-    typeof element.innerText === "string"
-      ? element.innerText
-      : (element.textContent ?? "");
-  return rendered.split(/\r?\n/gu).map(normalizeQuery).filter(Boolean);
-}
-
-function hasSearchMarker(element: Element, pattern: RegExp): boolean {
-  let current: Element | null = element;
-  for (let depth = 0; current && depth < 10; depth += 1) {
-    if (pattern.test(normalizeQuery(current.textContent ?? ""))) return true;
-    current = current.parentElement;
-  }
-  return false;
-}
-
-function extractCurrentChatGptQueries(
-  document: Document,
-  output: ExtractedQuery[],
-  seen: Set<string>,
-): void {
-  const marker =
-    /(?:(?:searching|searched)\s+\d+\s+websites?|searched the web)/iu;
-  for (const element of document.querySelectorAll(
-    "svg[width='12'][height='12'] + span",
-  )) {
-    if (!hasSearchMarker(element, marker)) continue;
-    addQuery(output, seen, element, "chatgpt", element.textContent ?? "");
-  }
-}
-
-function extractCurrentClaudeQueries(
-  document: Document,
-  output: ExtractedQuery[],
-  seen: Set<string>,
-): void {
-  for (const button of document.querySelectorAll(
-    "button[disabled][aria-disabled='true']",
-  )) {
-    const resultNode = button.querySelector("p");
-    const resultLabel = normalizeQuery(resultNode?.textContent ?? "");
-    if (!/^\d{1,4}\s+[\p{L}][\p{L} .-]{1,40}$/iu.test(resultLabel)) continue;
-    const explicitQuery = button.querySelector(".truncate");
-    if (!explicitQuery || explicitQuery.childElementCount > 0) continue;
-    const lines = textLines(button);
-    const query = normalizeQuery(
-      explicitQuery?.textContent ?? lines.slice(0, -1).join(" "),
-    );
-    addQuery(output, seen, button, "claude", query);
-  }
-}
-
-export function extractAssistantQueries(
-  document: Document,
-  platform: "chatgpt" | "claude",
-): ExtractedQuery[] {
-  const output: ExtractedQuery[] = [];
-  const seen = new Set<string>();
-  if (platform === "chatgpt")
-    extractCurrentChatGptQueries(document, output, seen);
-  else extractCurrentClaudeQueries(document, output, seen);
-
-  for (const element of document.querySelectorAll(QUERY_NODE_SELECTOR)) {
-    if (
-      !isExplicitlySearchScoped(element) &&
-      !element.hasAttribute("data-search-query")
-    )
-      continue;
-    const query = queryFromElement(
-      element,
-      document.location?.href ?? "https://example.invalid/",
-    );
-    addQuery(output, seen, element, platform, query);
-  }
-  return output;
 }
 
 const AI_CONTAINER_SELECTOR = [

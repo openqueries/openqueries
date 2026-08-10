@@ -21,11 +21,13 @@ import type {
 } from "./lib/types";
 
 const manifestVersion = chrome.runtime.getManifest().version;
+const chatgptMainFile = chatgptMainUrl.split("/").pop()!.split("?")[0]!;
+const claudeMainFile = claudeMainUrl.split("/").pop()!.split("?")[0]!;
 
 const mainWorldScripts: chrome.scripting.RegisteredContentScript[] = [
   {
     id: "contentsChatgptMain",
-    js: [chatgptMainUrl.split("/").pop()!.split("?")[0]!],
+    js: [chatgptMainFile],
     matches: ["https://chatgpt.com/*"],
     runAt: "document_start",
     world: "MAIN",
@@ -33,11 +35,49 @@ const mainWorldScripts: chrome.scripting.RegisteredContentScript[] = [
   },
   {
     id: "contentsClaudeMain",
-    js: [claudeMainUrl.split("/").pop()!.split("?")[0]!],
+    js: [claudeMainFile],
     matches: ["https://claude.ai/*"],
     runAt: "document_start",
     world: "MAIN",
     persistAcrossSessions: true,
+  },
+];
+
+type ExistingTabTarget = {
+  platform: LocalQueryEvent["platform"];
+  matches: string[];
+  mainFile?: string;
+};
+
+const existingTabTargets: ExistingTabTarget[] = [
+  {
+    platform: "chatgpt",
+    matches: ["https://chatgpt.com/*"],
+    mainFile: chatgptMainFile,
+  },
+  {
+    platform: "claude",
+    matches: ["https://claude.ai/*"],
+    mainFile: claudeMainFile,
+  },
+  {
+    platform: "google",
+    matches: [
+      "https://www.google.com/search*",
+      "https://www.google.de/search*",
+      "https://www.google.co.uk/search*",
+      "https://www.google.fr/search*",
+      "https://www.google.es/search*",
+      "https://www.google.it/search*",
+      "https://www.google.nl/search*",
+      "https://www.google.pl/search*",
+      "https://www.google.at/search*",
+      "https://www.google.ch/search*",
+      "https://www.google.ca/search*",
+      "https://www.google.com.au/search*",
+      "https://www.google.co.in/search*",
+      "https://www.google.co.jp/search*",
+    ],
   },
 ];
 
@@ -59,7 +99,59 @@ async function syncMainWorldScripts(): Promise<void> {
   }
 }
 
-setTimeout(() => void syncMainWorldScripts().catch(() => undefined), 50);
+function isolatedBridgeFiles(platform: LocalQueryEvent["platform"]): string[] {
+  const manifest = chrome.runtime.getManifest() as chrome.runtime.Manifest & {
+    content_scripts?: Array<{ matches?: string[]; js?: string[] }>;
+  };
+  const domain =
+    platform === "chatgpt"
+      ? "chatgpt.com"
+      : platform === "claude"
+        ? "claude.ai"
+        : "google.";
+  return (
+    manifest.content_scripts?.find((script) =>
+      script.matches?.some((match) => match.includes(domain)),
+    )?.js ?? []
+  );
+}
+
+async function injectExistingSupportedTabs(): Promise<void> {
+  for (const target of existingTabTargets) {
+    const tabs = await chrome.tabs.query({ url: target.matches });
+    const bridgeFiles = isolatedBridgeFiles(target.platform);
+    for (const tab of tabs) {
+      if (tab.id == null) continue;
+      try {
+        if (target.mainFile) {
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: [target.mainFile],
+            world: "MAIN",
+            injectImmediately: true,
+          });
+        }
+        if (bridgeFiles.length) {
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: bridgeFiles,
+            world: "ISOLATED",
+            injectImmediately: true,
+          });
+        }
+      } catch {
+        // A tab can navigate or close between discovery and injection.
+      }
+    }
+  }
+}
+
+async function bootstrapProviderScripts(): Promise<void> {
+  await syncMainWorldScripts();
+  await injectExistingSupportedTabs();
+}
+
+setTimeout(() => void bootstrapProviderScripts().catch(() => undefined), 50);
 
 chrome.runtime.onInstalled.addListener((details) => {
   void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
@@ -141,7 +233,7 @@ async function addObservation(
     ...request.observation,
     query,
     extensionVersion: manifestVersion,
-    adapterVersion: "1.0.3",
+    adapterVersion: "1.0.4",
     tabId,
   };
   state = { ...state, events: [event, ...state.events] };

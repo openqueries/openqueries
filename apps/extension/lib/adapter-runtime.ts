@@ -10,6 +10,11 @@ const observedElements = new WeakMap<
 const observedGoogleSeeds = new Set<string>();
 const observedExternalQueries = new Set<string>();
 
+type AdapterWindow = Window & {
+  __openQueriesDomAdapters?: Partial<Record<Platform, true>>;
+  __openQueriesExternalBridges?: Partial<Record<Platform, true>>;
+};
+
 function locale(): string | undefined {
   return document.documentElement.lang || navigator.language || undefined;
 }
@@ -73,10 +78,34 @@ export async function emitExternalQuery(
   });
 }
 
+export function installExternalQueryBridge(platform: Platform): void {
+  const adapterWindow = window as AdapterWindow;
+  const installed = (adapterWindow.__openQueriesExternalBridges ??= {});
+  if (installed[platform]) return;
+  installed[platform] = true;
+  window.addEventListener("message", (event: MessageEvent<unknown>) => {
+    if (event.origin !== window.location.origin) return;
+    const data = event.data;
+    if (!data || typeof data !== "object") return;
+    const record = data as Record<string, unknown>;
+    if (
+      record.channel !== "openqueries:provider-query:v1" ||
+      record.platform !== platform ||
+      typeof record.query !== "string"
+    )
+      return;
+    void emitExternalQuery(platform, record.query);
+  });
+}
+
 export function runAdapter(
   platform: Platform,
   extract: () => ExtractedQuery[],
 ): void {
+  const adapterWindow = window as AdapterWindow;
+  const installed = (adapterWindow.__openQueriesDomAdapters ??= {});
+  if (installed[platform]) return;
+  installed[platform] = true;
   let queued = false;
   let previousHref = location.href;
   const scan = () => {
