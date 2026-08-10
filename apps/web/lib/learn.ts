@@ -6,6 +6,7 @@ import {
   type ContentSource,
   type RelatedLink,
 } from "./content";
+import { deepenSections, learnDepthBySlug } from "./content-depth";
 
 export type LearnArticle = {
   slug: string;
@@ -13,6 +14,7 @@ export type LearnArticle = {
   description: string;
   eyebrow: string;
   directAnswer: string;
+  keyTakeaways: string[];
   publishedAt: string;
   updatedAt: string;
   readMinutes: number;
@@ -22,7 +24,9 @@ export type LearnArticle = {
   related: RelatedLink[];
 };
 
-export const learnArticles: LearnArticle[] = [
+type LearnArticleDraft = Omit<LearnArticle, "keyTakeaways">;
+
+const learnArticleDrafts: LearnArticleDraft[] = [
   {
     slug: "what-are-fan-out-queries",
     title: "What are fan-out queries?",
@@ -128,6 +132,8 @@ export const learnArticles: LearnArticle[] = [
     sources: [
       PRIMARY_SOURCES.googleAiFeatures,
       PRIMARY_SOURCES.openAiChatGptSearch,
+      PRIMARY_SOURCES.anthropicWebSearch,
+      PRIMARY_SOURCES.openQueriesMethodology,
     ],
     related: [
       { href: "/fan-out-queries", label: "Fan-out query pillar" },
@@ -161,7 +167,7 @@ export const learnArticles: LearnArticle[] = [
         id: "four-evidence-families",
         heading: "Four evidence families, four different questions",
         paragraphs: [
-          "A disciplined program names the source before interpreting the metric.",
+          "A disciplined program names the source, unit, collection window and coverage boundary before interpreting the metric or comparing it with another evidence family.",
         ],
         table: {
           headers: ["Evidence", "Question answered", "Common misuse"],
@@ -207,7 +213,7 @@ export const learnArticles: LearnArticle[] = [
         id: "decision-workflow",
         heading: "From query evidence to a content decision",
         paragraphs: [
-          "The useful output is a falsifiable improvement to one canonical page.",
+          "The useful output is a falsifiable improvement to one canonical page, not another dashboard score or a mandate to publish every adjacent query.",
         ],
         steps: [
           {
@@ -247,6 +253,7 @@ export const learnArticles: LearnArticle[] = [
       PRIMARY_SOURCES.googleAiFeatures,
       PRIMARY_SOURCES.googleHelpfulContent,
       PRIMARY_SOURCES.geoPaper,
+      PRIMARY_SOURCES.openQueriesMethodology,
     ],
     related: [
       { href: "/generative-engine-optimization", label: "GEO practical guide" },
@@ -288,7 +295,7 @@ export const learnArticles: LearnArticle[] = [
         id: "evidence-table",
         heading: "The evidence contract",
         paragraphs: [
-          "The label should answer where the string came from and what claim is safe.",
+          "The label should answer where the string came from, which collection contract recognized it and what claim is safe after the record leaves the original interface.",
         ],
         table: {
           headers: ["Label", "Minimum provenance", "Permitted claim"],
@@ -340,6 +347,7 @@ export const learnArticles: LearnArticle[] = [
       PRIMARY_SOURCES.openAiChatGptSearch,
       PRIMARY_SOURCES.anthropicWebSearch,
       PRIMARY_SOURCES.googleAiFeatures,
+      PRIMARY_SOURCES.openQueriesMethodology,
     ],
     related: [
       { href: "/chatgpt-search-queries", label: "ChatGPT search queries" },
@@ -437,6 +445,7 @@ export const learnArticles: LearnArticle[] = [
       PRIMARY_SOURCES.openAiChatGptSearch,
       PRIMARY_SOURCES.anthropicWebSearch,
       PRIMARY_SOURCES.googleAiFeatures,
+      PRIMARY_SOURCES.openQueriesMethodology,
     ],
     related: [
       { href: "/methodology", label: "Open mathematical methodology" },
@@ -446,6 +455,19 @@ export const learnArticles: LearnArticle[] = [
     ],
   },
 ];
+
+export const learnArticles: LearnArticle[] = learnArticleDrafts.map(
+  (article) => {
+    const depth = learnDepthBySlug[article.slug];
+    if (!depth) throw new Error(`Missing article depth for ${article.slug}`);
+    return {
+      ...article,
+      keyTakeaways: depth.keyTakeaways,
+      readMinutes: depth.readMinutes,
+      sections: deepenSections(article.sections, depth),
+    };
+  },
+);
 
 export function getLearnArticle(slug: string): LearnArticle | undefined {
   return learnArticles.find((article) => article.slug === slug);

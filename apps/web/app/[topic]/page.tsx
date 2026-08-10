@@ -9,6 +9,7 @@ import {
   ContentSections,
   DirectAnswer,
   InstallCta,
+  KeyTakeaways,
   RelatedLinks,
   SourceList,
 } from "../content-components";
@@ -49,6 +50,7 @@ export default async function TopicPage({
       eyebrow={topic.eyebrow}
       title={topic.title}
       intro={topic.description}
+      meta={`${topic.readMinutes} min practical guide · Updated ${topic.updatedAt}`}
       breadcrumbs={
         <Breadcrumbs
           items={[
@@ -68,6 +70,8 @@ export default async function TopicPage({
           description: topic.description,
           url: absoluteUrl(`/${topic.slug}`),
           mainEntityOfPage: absoluteUrl(`/${topic.slug}`),
+          keywords: topic.about.join(", "),
+          citation: topic.sources.map((source) => source.url),
           datePublished: topic.publishedAt,
           dateModified: topic.updatedAt,
           isPartOf: {
@@ -114,9 +118,14 @@ export default async function TopicPage({
         }}
       />
       <div className="content-layout">
-        <ArticleToc sections={topic.sections} />
+        <ArticleToc sections={topic.sections} className="desktop-article-toc" />
         <div className="article-main">
           <DirectAnswer>{topic.directAnswer}</DirectAnswer>
+          <KeyTakeaways items={topic.keyTakeaways} />
+          <ArticleToc
+            sections={topic.sections}
+            className="mobile-article-toc"
+          />
           {topic.provider && topic.providerLabel ? (
             <div className="topic-provider">
               <ProviderLogo

@@ -17,8 +17,7 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/",
-  title:
-    "Open Queries — AI Search Query Inspector for ChatGPT, Claude & Google AI",
+  title: "AI Search Query Inspector for ChatGPT, Claude & Google AI",
   description: DEFAULT_DESCRIPTION,
 });
 

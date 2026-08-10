@@ -8,6 +8,7 @@ import {
   type ContentSource,
   type RelatedLink,
 } from "./content";
+import { deepenSections, topicDepthBySlug } from "./content-depth";
 
 export type TopicPage = {
   slug: string;
@@ -15,6 +16,8 @@ export type TopicPage = {
   description: string;
   eyebrow: string;
   directAnswer: string;
+  keyTakeaways: string[];
+  readMinutes: number;
   publishedAt: string;
   updatedAt: string;
   schemaType: "Article" | "TechArticle";
@@ -26,7 +29,9 @@ export type TopicPage = {
   related: RelatedLink[];
 };
 
-export const topicPages: TopicPage[] = [
+type TopicPageDraft = Omit<TopicPage, "keyTakeaways" | "readMinutes">;
+
+const topicPageDrafts: TopicPageDraft[] = [
   {
     slug: "chatgpt-search-queries",
     title: "ChatGPT search queries",
@@ -133,7 +138,11 @@ export const topicPages: TopicPage[] = [
           "A surfaced query is direct interface evidence. It is not chain of thought, a ranking factor or a complete map of the provider's retrieval system.",
       },
     ],
-    sources: [PRIMARY_SOURCES.openAiChatGptSearch],
+    sources: [
+      PRIMARY_SOURCES.openAiChatGptSearch,
+      PRIMARY_SOURCES.openQueriesArchitecture,
+      PRIMARY_SOURCES.openQueriesMethodology,
+    ],
     related: [
       {
         href: "/learn/observed-vs-estimated-ai-queries",
@@ -243,7 +252,11 @@ export const topicPages: TopicPage[] = [
           "Open Queries uses “ChatGPT search history” only for the local web-search trace. It never uses the phrase to imply access to chat history.",
       },
     ],
-    sources: [PRIMARY_SOURCES.openAiChatGptSearch],
+    sources: [
+      PRIMARY_SOURCES.openAiChatGptSearch,
+      PRIMARY_SOURCES.openQueriesArchitecture,
+      PRIMARY_SOURCES.openQueriesPrivacy,
+    ],
     related: [
       {
         href: "/learn/observed-vs-estimated-ai-queries",
@@ -344,7 +357,11 @@ export const topicPages: TopicPage[] = [
           "Keep Claude observations, Claude estimates, Google search demand and downstream traffic as separate evidence families.",
       },
     ],
-    sources: [PRIMARY_SOURCES.anthropicWebSearch],
+    sources: [
+      PRIMARY_SOURCES.anthropicWebSearch,
+      PRIMARY_SOURCES.openQueriesArchitecture,
+      PRIMARY_SOURCES.openQueriesMethodology,
+    ],
     related: [
       {
         href: "/learn/observed-vs-estimated-ai-queries",
@@ -464,6 +481,8 @@ export const topicPages: TopicPage[] = [
     sources: [
       PRIMARY_SOURCES.googleAiFeatures,
       PRIMARY_SOURCES.googleHelpfulContent,
+      PRIMARY_SOURCES.openQueriesArchitecture,
+      PRIMARY_SOURCES.openQueriesMethodology,
     ],
     related: [
       {
@@ -581,6 +600,8 @@ export const topicPages: TopicPage[] = [
     sources: [
       PRIMARY_SOURCES.googleAiFeatures,
       PRIMARY_SOURCES.openAiChatGptSearch,
+      PRIMARY_SOURCES.anthropicWebSearch,
+      PRIMARY_SOURCES.openQueriesMethodology,
     ],
     related: [
       {
@@ -709,6 +730,7 @@ export const topicPages: TopicPage[] = [
     sources: [
       PRIMARY_SOURCES.googleAiFeatures,
       PRIMARY_SOURCES.googleHelpfulContent,
+      PRIMARY_SOURCES.openQueriesMethodology,
     ],
     related: [
       {
@@ -1016,7 +1038,7 @@ export const topicPages: TopicPage[] = [
         id: "workflow",
         heading: "An AEO workflow for content teams",
         paragraphs: [
-          "Treat each intervention as a testable improvement to one canonical page.",
+          "Treat each intervention as a testable improvement to one canonical page, with a named reader decision, visible evidence gap and an evaluation date.",
         ],
         steps: [
           {
@@ -1076,6 +1098,7 @@ export const topicPages: TopicPage[] = [
     sources: [
       PRIMARY_SOURCES.googleHelpfulContent,
       PRIMARY_SOURCES.googleAiFeatures,
+      PRIMARY_SOURCES.openQueriesMethodology,
     ],
     related: [
       { href: "/learn/aeo-geo-query-data", label: "Why AEO needs query data" },
@@ -1090,6 +1113,17 @@ export const topicPages: TopicPage[] = [
     ],
   },
 ];
+
+export const topicPages: TopicPage[] = topicPageDrafts.map((topic) => {
+  const depth = topicDepthBySlug[topic.slug];
+  if (!depth) throw new Error(`Missing topic depth for ${topic.slug}`);
+  return {
+    ...topic,
+    keyTakeaways: depth.keyTakeaways,
+    readMinutes: depth.readMinutes,
+    sections: deepenSections(topic.sections, depth),
+  };
+});
 
 export const topicPageBySlug = new Map(
   topicPages.map((topic) => [topic.slug, topic]),

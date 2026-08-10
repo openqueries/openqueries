@@ -26,9 +26,18 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   );
 }
 
-export function ArticleToc({ sections }: { sections: ContentSection[] }) {
+export function ArticleToc({
+  sections,
+  className = "",
+}: {
+  sections: ContentSection[];
+  className?: string;
+}) {
   return (
-    <aside className="article-toc" aria-label="On this page">
+    <aside
+      className={`article-toc${className ? ` ${className}` : ""}`}
+      aria-label="On this page"
+    >
       <strong>On this page</strong>
       <ol>
         {sections.map((section) => (
@@ -46,6 +55,19 @@ export function DirectAnswer({ children }: { children: string }) {
     <aside className="direct-answer" aria-label="Direct answer">
       <strong>Direct answer</strong>
       <p>{children}</p>
+    </aside>
+  );
+}
+
+export function KeyTakeaways({ items }: { items: string[] }) {
+  return (
+    <aside className="key-takeaways" aria-label="Key takeaways">
+      <strong>What you will leave with</strong>
+      <ul>
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
     </aside>
   );
 }
@@ -148,7 +170,10 @@ export function SourceList({ sources }: { sources: ContentSource[] }) {
       <ul>
         {sources.map((source) => (
           <li key={source.url}>
-            <a href={source.url}>{source.label}</a>
+            <div>
+              <a href={source.url}>{source.label}</a>
+              <p>{source.supports}</p>
+            </div>
             <span>
               {source.publisher} · accessed {source.accessedAt}
             </span>

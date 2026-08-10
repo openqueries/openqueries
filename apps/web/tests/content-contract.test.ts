@@ -25,6 +25,18 @@ const publicRoutes = new Set([
   ...articleRoutes,
 ]);
 
+const approvedPrimaryTerms = new Map([
+  ["chatgpt-search-queries", "chatgpt search"],
+  ["chatgpt-search-history", "chatgpt search history"],
+  ["claude-web-search", "claude web search"],
+  ["google-ai-overviews", "google ai overviews"],
+  ["fan-out-queries", "fan-out"],
+  ["ai-search-visibility", "ai visibility tool"],
+  ["ai-search-optimization", "ai search optimization"],
+  ["generative-engine-optimization", "generative engine optimization"],
+  ["answer-engine-optimization", "answer engine optimization"],
+]);
+
 function sectionText(sections: ContentSection[]) {
   return sections
     .flatMap((section) => [
@@ -45,6 +57,33 @@ function sectionText(sections: ContentSection[]) {
       section.callout ?? "",
     ])
     .join(" ");
+}
+
+function wordCount(text: string) {
+  return text.split(/[^A-Za-z0-9]+/u).filter(Boolean).length;
+}
+
+function pageText(page: {
+  directAnswer: string;
+  keyTakeaways: string[];
+  sections: ContentSection[];
+}) {
+  return [
+    page.directAnswer,
+    ...page.keyTakeaways,
+    sectionText(page.sections),
+  ].join(" ");
+}
+
+function richArtifactCount(sections: ContentSection[]) {
+  return sections.filter(
+    (section) =>
+      section.steps?.length ||
+      section.table?.rows.length ||
+      section.example ||
+      section.equations?.length ||
+      section.bullets?.length,
+  ).length;
 }
 
 test("keeps one unique canonical for every approved intent", () => {
@@ -78,9 +117,24 @@ test("keeps one unique canonical for every approved intent", () => {
 test("every pillar meets the evidence and internal-link contract", () => {
   for (const topic of topicPages) {
     assert.ok(topic.directAnswer.length >= 100, topic.slug);
-    assert.ok(topic.sections.length >= 5, topic.slug);
-    assert.ok(topic.sources.length >= 1, topic.slug);
+    assert.ok(topic.sections.length >= 7, `${topic.slug}: section depth`);
+    assert.ok(topic.sources.length >= 3, `${topic.slug}: source breadth`);
     assert.ok(topic.about.length >= 2, topic.slug);
+    assert.ok(topic.keyTakeaways.length >= 4, `${topic.slug}: takeaways`);
+    assert.ok(topic.readMinutes >= 10, `${topic.slug}: read time`);
+    assert.ok(
+      wordCount(pageText(topic)) >= 1_200,
+      `${topic.slug}: publishable word floor`,
+    );
+    assert.ok(
+      richArtifactCount(topic.sections) >= 3,
+      `${topic.slug}: tables, steps and examples`,
+    );
+    assert.match(
+      `${topic.title} ${topic.description} ${pageText(topic)}`.toLowerCase(),
+      new RegExp(approvedPrimaryTerms.get(topic.slug) ?? "(?!)", "u"),
+      `${topic.slug}: approved canonical term`,
+    );
     assert.match(topic.publishedAt, /^\d{4}-\d{2}-\d{2}$/u);
     assert.match(topic.updatedAt, /^\d{4}-\d{2}-\d{2}$/u);
 
@@ -113,9 +167,19 @@ test("every pillar meets the evidence and internal-link contract", () => {
 test("every authority article meets the depth and link contract", () => {
   for (const article of learnArticles) {
     assert.ok(article.directAnswer.length >= 100, article.slug);
-    assert.ok(article.sections.length >= 5, article.slug);
-    assert.ok(article.sources.length >= 1, article.slug);
+    assert.ok(article.sections.length >= 7, `${article.slug}: section depth`);
+    assert.ok(article.sources.length >= 3, `${article.slug}: source breadth`);
     assert.ok(article.about.length >= 2, article.slug);
+    assert.ok(article.keyTakeaways.length >= 4, `${article.slug}: takeaways`);
+    assert.ok(article.readMinutes >= 10, `${article.slug}: read time`);
+    assert.ok(
+      wordCount(pageText(article)) >= 1_200,
+      `${article.slug}: publishable word floor`,
+    );
+    assert.ok(
+      richArtifactCount(article.sections) >= 3,
+      `${article.slug}: tables, steps and examples`,
+    );
 
     const related = article.related.map((link) => link.href);
     assert.ok(related.filter((href) => topicRoutes.includes(href)).length >= 2);
@@ -155,6 +219,7 @@ test("source and claim guardrails remain explicit", () => {
       assert.match(source.url, /^https:\/\//u, `${page.slug}: ${source.label}`);
       assert.ok(source.publisher.length > 1);
       assert.match(source.accessedAt, /^\d{4}-\d{2}-\d{2}$/u);
+      assert.ok(source.supports.length >= 60, `${page.slug}: source scope`);
     }
   }
 
@@ -182,6 +247,28 @@ test("source and claim guardrails remain explicit", () => {
     .join(" ");
   assert.match(allText, /estimated fan-out|estimated queries/iu);
   assert.match(allText, /observed quer/iu);
+});
+
+test("authority pages do not reuse body paragraphs", () => {
+  const owners = new Map<string, string>();
+
+  for (const page of [...topicPages, ...learnArticles]) {
+    for (const section of page.sections) {
+      for (const paragraph of section.paragraphs) {
+        const normalized = paragraph
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/gu, " ")
+          .trim();
+        assert.ok(normalized.length >= 80, `${page.slug}: thin paragraph`);
+        assert.equal(
+          owners.get(normalized),
+          undefined,
+          `${page.slug}: duplicates ${owners.get(normalized)}`,
+        );
+        owners.set(normalized, page.slug);
+      }
+    }
+  }
 });
 
 test("sitemap contains every public route exactly once", () => {

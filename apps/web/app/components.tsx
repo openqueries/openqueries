@@ -166,6 +166,7 @@ export function EditorialPage({
   eyebrow,
   title,
   intro,
+  meta,
   breadcrumbs,
   wide = false,
   children,
@@ -173,17 +174,36 @@ export function EditorialPage({
   eyebrow: string;
   title: string;
   intro: string;
+  meta?: string;
   breadcrumbs?: ReactNode;
   wide?: boolean;
   children: ReactNode;
 }) {
   return (
     <SiteShell>
-      <header className="editorial-hero container">
-        {breadcrumbs}
-        <p className="eyebrow">{eyebrow}</p>
-        <h1>{title}</h1>
-        <p>{intro}</p>
+      <header
+        className={`editorial-hero container${wide ? " content-shell" : ""}`}
+      >
+        {wide ? (
+          <div className="article-hero-layout">
+            <div aria-hidden="true" />
+            <div className="article-hero-copy">
+              {breadcrumbs}
+              <p className="eyebrow">{eyebrow}</p>
+              <h1>{title}</h1>
+              <p>{intro}</p>
+              {meta ? <span>{meta}</span> : null}
+            </div>
+          </div>
+        ) : (
+          <>
+            {breadcrumbs}
+            <p className="eyebrow">{eyebrow}</p>
+            <h1>{title}</h1>
+            <p>{intro}</p>
+            {meta ? <span>{meta}</span> : null}
+          </>
+        )}
       </header>
       <article
         className={`editorial-body container${wide ? " content-shell" : ""}`}

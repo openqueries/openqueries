@@ -8,6 +8,7 @@ import {
   ContentSections,
   DirectAnswer,
   InstallCta,
+  KeyTakeaways,
   RelatedLinks,
   SourceList,
 } from "../../content-components";
@@ -50,9 +51,12 @@ export default async function LearnArticlePage({
           "@type": "Article",
           headline: article.title,
           description: article.description,
+          url: absoluteUrl(`/learn/${article.slug}`),
           datePublished: article.publishedAt,
           dateModified: article.updatedAt,
           mainEntityOfPage: absoluteUrl(`/learn/${article.slug}`),
+          keywords: article.about.join(", "),
+          citation: article.sources.map((source) => source.url),
           isPartOf: {
             "@type": "WebSite",
             name: "Open Queries",
@@ -90,26 +94,39 @@ export default async function LearnArticlePage({
           ],
         }}
       />
-      <header className="article-hero container">
-        <Breadcrumbs
-          items={[
-            { href: "/", label: "Home" },
-            { href: "/learn", label: "Learn" },
-            { label: article.title },
-          ]}
-        />
-        <p className="eyebrow">{article.eyebrow}</p>
-        <h1>{article.title}</h1>
-        <p>{article.description}</p>
-        <span>
-          {article.readMinutes} min read · Updated {article.updatedAt}
-        </span>
+      <header className="article-hero container content-shell">
+        <div className="article-hero-layout">
+          <div aria-hidden="true" />
+          <div className="article-hero-copy">
+            <Breadcrumbs
+              items={[
+                { href: "/", label: "Home" },
+                { href: "/learn", label: "Learn" },
+                { label: article.title },
+              ]}
+            />
+            <p className="eyebrow">{article.eyebrow}</p>
+            <h1>{article.title}</h1>
+            <p>{article.description}</p>
+            <span>
+              {article.readMinutes} min read · Updated {article.updatedAt}
+            </span>
+          </div>
+        </div>
       </header>
       <article className="article-body container content-shell">
         <div className="content-layout">
-          <ArticleToc sections={article.sections} />
+          <ArticleToc
+            sections={article.sections}
+            className="desktop-article-toc"
+          />
           <div className="article-main">
             <DirectAnswer>{article.directAnswer}</DirectAnswer>
+            <KeyTakeaways items={article.keyTakeaways} />
+            <ArticleToc
+              sections={article.sections}
+              className="mobile-article-toc"
+            />
             <ContentSections sections={article.sections} />
             <SourceList sources={article.sources} />
             <RelatedLinks links={article.related} />
