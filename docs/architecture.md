@@ -23,12 +23,18 @@ language/locale and adapter versions. Chat messages, conversation identifiers,
 chat URLs, titles and account identity have no schema fields. Zod objects are
 strict so adding those fields fails validation.
 
-ChatGPT exposes search queries in structured `search_queries` metadata even
-when its interface renders only a website count. A document-start, main-world
-adapter clones only ChatGPT conversation transport responses, walks only
-explicit search-metadata/tool fields and posts query strings to the isolated
-extension context. Ordinary `query` fields and message content are rejected and
-never cross that boundary. Claude and Google adapters read explicit search UI.
+ChatGPT and Claude install a document-start, main-world transport observer. It
+inspects cloned `fetch`, XHR, SSE, `EventSource` and WebSocket response data,
+walks only explicit search-metadata or search-tool fields, and posts accepted
+query strings to the isolated extension context. Generic `query` fields are
+eligible only inside a search-scoped tool object; message content is never a
+fallback. ChatGPT additionally replays a successful provider-authenticated GET
+template against the active `/c/<conversation>` snapshot endpoint. Only GET
+requests are cloned; POST requests and request bodies are never consumed.
+
+Google has a separate page adapter. It records the Search URL's `q` value as
+`google_user_search` and accepts expanded queries only from recognized AI
+Overview containers. Normal result links and unrelated page text are ignored.
 All capture and history processing happens locally while privacy is unaccepted,
 but Current and History display no query data. Accepting privacy sends every
 eligible observed query and unlocks the trace plus explicit, user-requested
@@ -38,6 +44,10 @@ No query-syntax heuristic rewrites or selectively blocks observed searches.
 Once privacy is accepted, every observed search query follows the same direct
 transfer path. Old local V1 estimates are discarded during state hydration
 rather than displayed under the new evidence contract.
+
+The browser adapters never click disclosure controls, select a provider search
+mode, enforce operators such as `site:`, or reconstruct an observation from
+generic conversation prose.
 
 ## Provider-native estimation
 

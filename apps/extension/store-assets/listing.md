@@ -8,7 +8,7 @@ See ChatGPT, Claude and Google AI search queries in a local side panel, then ins
 
 Open Queries makes the retrieval layer of AI search visible.
 
-When ChatGPT, Claude or Google Search runs a web search, the extension recognizes the provider's explicit search-tool query. For ChatGPT this includes structured `search_queries` metadata when the interface shows only a website count. It never treats chat messages as search queries. After accepting the privacy setting, you can view the query trace, request likely fan-out queries and inspect the provider-native evidence behind their order.
+When ChatGPT, Claude or Google Search runs a web search, the extension recognizes the provider's explicit search-tool query. ChatGPT and Claude are read from structured provider transport metadata, including cases where the interface shows only a website count. Google supplies the Search seed and query expansions explicitly exposed inside an AI Overview. Open Queries never treats chat messages as search queries. After accepting the privacy setting, you can view the query trace, request likely fan-out queries and inspect the provider-native evidence behind their order.
 
 WHAT YOU CAN INSPECT
 
@@ -52,11 +52,11 @@ Open Queries is independent and is not affiliated with, endorsed by or sponsored
 
 No Open Queries account is required. Pin the toolbar action and open the side
 panel beside ChatGPT, Claude or a Google Search result. Trigger a provider web
-search. In Claude, expand “Searched the web” to reveal the query chip. Open
+search normally; no search-mode selection or disclosure click is required. Open
 Settings, switch on “Privacy accepted”, then select the query and click
-“Estimate fan-outs”. The parser emits only explicit search metadata or
-search UI and never stores or transfers chat messages. A supported provider may
-require its own login.
+“Estimate fan-outs”. The parser emits only explicit search-tool metadata or
+Google Search evidence and never stores or transfers chat messages. A supported
+provider may require its own login.
 
 ## Single purpose
 
@@ -78,7 +78,7 @@ Registers the bundled ChatGPT and Claude document-start adapters in the page's m
 
 ### Site access
 
-Declared content scripts run only on ChatGPT, Claude and supported Google Search result pages. They read explicit search-tool UI or explicit provider search-tool metadata. The `chatgpt.com` and `claude.ai` host permissions are required to register those bundled main-world adapters. The `openqueries.org` host permission is used only after privacy acceptance for query transfer, deletion and the user-requested fan-out API.
+Declared content scripts run only on ChatGPT, Claude and supported Google Search result pages. ChatGPT and Claude read explicit provider search-tool metadata; Google reads the Search seed and explicit query expansions inside recognized AI Overview containers. The `chatgpt.com` and `claude.ai` host permissions are required to register those bundled main-world adapters. The `openqueries.org` host permission is used only after privacy acceptance for query transfer, deletion and the user-requested fan-out API.
 
 ### Remote code
 

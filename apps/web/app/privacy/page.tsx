@@ -51,11 +51,11 @@ export default function PrivacyPage() {
       <section>
         <h2>How provider pages are read</h2>
         <p>
-          Open Queries extracts only explicit search-tool fields. ChatGPT can
-          expose these as structured <code>search_queries</code> metadata when
-          its interface shows only a website count; Claude and Google expose
-          supported queries in search UI. Ordinary message fields are ignored
-          and never enter extension storage or an Open Queries request.
+          Open Queries extracts only explicit search-tool fields. ChatGPT and
+          Claude expose supported queries in structured provider transport
+          metadata; Google exposes the Search seed and, when present, explicit
+          AI Overview query expansions. Ordinary message fields are ignored and
+          never enter extension storage or an Open Queries request.
         </p>
       </section>
       <section>

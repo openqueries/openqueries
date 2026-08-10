@@ -1,5 +1,7 @@
 # Open Queries
 
+[![Latest release](https://img.shields.io/github/v/release/openqueries/openqueries?display_name=tag&sort=semver)](https://github.com/openqueries/openqueries/releases/latest)
+
 [Website](https://openqueries.org) · [Chrome Web Store](https://chromewebstore.google.com/detail/ieglcpgkjnieapajeldfhkjpllkcamkl) · [Methodology](https://openqueries.org/methodology) · [Privacy](https://openqueries.org/privacy)
 
 **See the queries behind AI search.**
@@ -18,9 +20,9 @@ the corresponding provider rather than a universal GPT scorer.
 
 ## Product boundary
 
-- Captures only provider search-tool signals on supported ChatGPT, Claude and
-  Google Search pages: structured `search_queries` metadata where available,
-  otherwise explicit search UI.
+- Captures only explicit provider search-tool signals on supported pages:
+  structured transport metadata from ChatGPT and Claude, plus the Google Search
+  seed and query expansions explicitly exposed inside an AI Overview.
 - Never emits or stores chat messages, titles, account identity or conversation
   URLs; ordinary message fields are rejected rather than used as a fallback.
 - Keeps a 30-day trace in Chrome.
@@ -30,6 +32,25 @@ the corresponding provider rather than a universal GPT scorer.
   is automatically sent and fan-out estimates are unlocked. Chat messages are
   never sent.
 - Never mixes estimated fan-outs into observed-query aggregates.
+
+## Capture architecture
+
+ChatGPT and Claude install the same small, document-start observer in the
+provider page's main world. It inspects cloned `fetch`, XHR, SSE,
+`EventSource` and WebSocket response data and accepts only explicit
+search-scoped fields. It does not click provider controls or scan generic chat
+containers. ChatGPT additionally reconciles the active conversation through a
+provider-authenticated GET-only snapshot; request bodies and POST requests are
+never cloned or consumed.
+
+Google uses a separate, fail-closed page adapter: it records the `q` parameter
+as `google_user_search` and labels only query links or attributes inside a
+recognized AI Overview as `observed_expanded_query`. The extension never
+rewrites observed queries, forces operators such as `site:`, or invents hidden
+searches.
+
+The complete trust boundaries and retention rules are documented in
+[docs/architecture.md](docs/architecture.md).
 
 ## Provider-native estimation
 
@@ -79,7 +100,8 @@ side panel before packaging.
 
 ## Contributing and security
 
-Adapter changes must fail closed and include sanitized DOM fixtures. Read
+Adapter changes must fail closed and include sanitized transport or DOM
+fixtures appropriate to the provider boundary. Read
 [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Report security
 issues privately to [security@openqueries.org](mailto:security@openqueries.org),
 not in a public issue.

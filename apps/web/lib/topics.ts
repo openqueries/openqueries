@@ -24,14 +24,14 @@ export const topicPages: TopicPage[] = [
       "See the web-search queries ChatGPT surfaces, distinguish observed searches from estimates and inspect likely query fan-outs.",
     eyebrow: "Supported surface · ChatGPT search",
     intro:
-      "Open Queries adds a local side-panel trace to ChatGPT search. It reads only explicit web-search tool UI—not prompts or conversation text.",
+      "Open Queries adds a local side-panel trace to ChatGPT search. It reads only explicit web-search tool metadata—not prompts or conversation text.",
     provider: "chatgpt",
     providerLabel: "ChatGPT",
     sections: [
       {
         heading: "What the extension observes",
         paragraphs: [
-          "When ChatGPT exposes a web-search action in a recognized search-specific container, Open Queries records the surfaced query as an observation. Generic assistant text and user messages are never eligible.",
+          "When ChatGPT emits an explicit search query in search-tool transport metadata, Open Queries records it as an observation. Generic assistant text and user messages are never eligible.",
           "Every item carries its platform, evidence class, capture time and adapter version. If the interface changes and the boundary becomes uncertain, the adapter fails closed.",
         ],
       },
@@ -74,7 +74,7 @@ export const topicPages: TopicPage[] = [
       {
         heading: "What appears in the local history",
         paragraphs: [
-          "Eligible entries are strings displayed by supported web-search tool UI. The local record includes only the query, provider, evidence class, time and technical adapter metadata.",
+          "Eligible entries are explicit provider search-tool queries. The local record includes only the query, provider, evidence class, time and technical adapter metadata.",
           "The history is limited to 30 days and 2,000 entries and can be cleared from Settings.",
         ],
       },
@@ -109,14 +109,14 @@ export const topicPages: TopicPage[] = [
       "Inspect web-search queries visibly surfaced by Claude and explore provider-native fan-out estimates without collecting chats.",
     eyebrow: "Supported surface · Claude web search",
     intro:
-      "Open Queries recognizes explicit Claude web-search UI, records the surfaced query locally and leaves conversation content alone.",
+      "Open Queries recognizes explicit Claude web-search tool metadata, records the surfaced query locally and leaves conversation content alone.",
     provider: "claude",
     providerLabel: "Claude",
     sections: [
       {
         heading: "A fail-closed Claude adapter",
         paragraphs: [
-          "The adapter uses search-specific interface markers rather than scanning generic message containers. A provider UI change can temporarily stop capture, but it must not widen collection into the conversation.",
+          "The document-start adapter inspects cloned provider transport responses and accepts only search-scoped tool fields. It does not click disclosure controls or scan generic message containers. A provider protocol change can temporarily stop capture, but it must not widen collection into the conversation.",
         ],
       },
       {

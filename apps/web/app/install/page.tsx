@@ -23,8 +23,8 @@ export default function InstallPage() {
         <h1>Put the AI search trace beside the conversation.</h1>
         <p>
           Open Queries runs as a clean Chrome side panel. It reads explicit
-          web-search UI—not chat messages. Accept the privacy setting to reveal
-          the query trace and request fan-out estimates.
+          web-search tool signals—not chat messages. Accept the privacy setting
+          to reveal the query trace and request fan-out estimates.
         </p>
         <div className="hero-actions">
           <a className="button primary" href={CHROME_WEB_STORE_URL}>
@@ -37,9 +37,9 @@ export default function InstallPage() {
           </a>
         </div>
         <span className="install-disclosure">
-          The Store listing is prepared for review. Until Google makes it
-          public, the same open-source build remains available as a signed
-          project release.
+          Version 1.0.5 is under Chrome Web Store review. Until Google makes the
+          listing public, the identical open-source package remains available
+          from the GitHub release.
         </span>
       </header>
 

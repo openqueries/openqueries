@@ -23,15 +23,17 @@ export default function MethodologyPage() {
         <h2>1. Observation boundary</h2>
         <p>
           An observed query enters the local trace only when a provider adapter
-          finds it inside an explicitly search-scoped interface element. Generic
-          message containers are ineligible. Chat messages, titles, account
-          identity, conversation URLs and conversation IDs do not exist in the
-          event schema.
+          finds it in an explicitly search-scoped transport field or recognized
+          Google AI Overview element. Generic message fields and containers are
+          ineligible. Chat messages, titles, account identity, conversation URLs
+          and conversation IDs do not exist in the event schema.
         </p>
         <div className="method-table">
           <div>
             <strong>observed_model_search</strong>
-            <span>A search string surfaced by ChatGPT or Claude tool UI.</span>
+            <span>
+              A search string exposed by ChatGPT or Claude search-tool metadata.
+            </span>
           </div>
           <div>
             <strong>observed_expanded_query</strong>
@@ -153,7 +155,9 @@ export default function MethodologyPage() {
         <h2>6. Limits and interpretation</h2>
         <ul>
           <li>Visible tool activity can be incomplete.</li>
-          <li>Provider UI changes can temporarily disable an adapter.</li>
+          <li>
+            Provider transport or UI changes can temporarily disable an adapter.
+          </li>
           <li>
             Generation and sampling are stochastic and model-version specific.
           </li>

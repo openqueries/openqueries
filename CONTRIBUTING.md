@@ -12,17 +12,20 @@ turning conversations into telemetry.
 
 ## Adapter rules
 
-Provider adapters must fail closed. They may emit a query only when it is found
-inside an explicitly search-scoped provider element. Generic user or assistant
-message containers are never valid extraction roots.
+Provider adapters must fail closed. They may emit a query only from an explicit
+search-scoped transport field or, for Google, an explicit search-scoped page
+element. Generic user or assistant message containers are never valid
+extraction roots.
 
-Every adapter change must include a sanitized DOM fixture test that proves both:
+Every adapter change must include a sanitized transport or DOM fixture test that
+proves both:
 
 - the intended search query is extracted; and
 - nearby chat text, titles, URLs, IDs and account details are not extracted.
 
-Never commit real conversation HTML. Reduce fixtures to the smallest synthetic
-markup that preserves the relevant DOM boundary.
+Never commit real conversations, raw provider responses or account data. Reduce
+fixtures to the smallest synthetic payload or markup that preserves the relevant
+boundary.
 
 ## Evidence labels
 

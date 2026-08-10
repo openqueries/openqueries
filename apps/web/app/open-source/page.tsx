@@ -39,7 +39,8 @@ export default function OpenSourcePage() {
         <h2>Useful contributions</h2>
         <ul>
           <li>
-            Sanitized DOM fixtures when provider search interfaces change.
+            Sanitized transport or DOM fixtures when provider search boundaries
+            change.
           </li>
           <li>
             Accessibility and localization improvements for the side panel.
