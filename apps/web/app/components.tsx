@@ -52,6 +52,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         <div className="header-inner">
           <Brand />
           <nav aria-label="Main navigation">
+            <Link href="/ai-search-optimization">AI search</Link>
             <Link href="/methodology">Methodology</Link>
             <Link href="/learn">Learn</Link>
             <Link href="/ai-search-visibility">AI visibility</Link>
@@ -76,6 +77,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
           <p>Open infrastructure for transparent AI search.</p>
         </div>
         <div className="footer-links">
+          <Link href="/ai-search-optimization">AI search optimization</Link>
+          <Link href="/ai-search-visibility">AI visibility</Link>
+          <Link href="/learn">Learn</Link>
           <Link href="/methodology">Methodology</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
@@ -162,21 +166,30 @@ export function EditorialPage({
   eyebrow,
   title,
   intro,
+  breadcrumbs,
+  wide = false,
   children,
 }: {
   eyebrow: string;
   title: string;
   intro: string;
+  breadcrumbs?: ReactNode;
+  wide?: boolean;
   children: ReactNode;
 }) {
   return (
     <SiteShell>
       <header className="editorial-hero container">
+        {breadcrumbs}
         <p className="eyebrow">{eyebrow}</p>
         <h1>{title}</h1>
         <p>{intro}</p>
       </header>
-      <article className="editorial-body container">{children}</article>
+      <article
+        className={`editorial-body container${wide ? " content-shell" : ""}`}
+      >
+        {children}
+      </article>
     </SiteShell>
   );
 }

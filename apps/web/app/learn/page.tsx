@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SiteShell } from "../components";
 import { learnArticles } from "@/lib/learn";
 import { pageMetadata } from "@/lib/site";
+import { topicPages } from "@/lib/topics";
 
 export const metadata: Metadata = pageMetadata({
   path: "/learn",
@@ -35,6 +36,25 @@ export default function LearnPage() {
             <strong>→</strong>
           </Link>
         ))}
+      </section>
+      <section className="topic-directory container">
+        <div className="section-heading split">
+          <div>
+            <p className="eyebrow">Intent pillars</p>
+            <h2>Apply the evidence to a concrete AI search job.</h2>
+          </div>
+          <Link href="/install">Install the AI search extension →</Link>
+        </div>
+        <div className="topic-directory-grid">
+          {topicPages.map((topic) => (
+            <Link href={`/${topic.slug}`} key={topic.slug}>
+              <small>{topic.eyebrow}</small>
+              <h3>{topic.title}</h3>
+              <p>{topic.directAnswer}</p>
+              <strong>Read the pillar →</strong>
+            </Link>
+          ))}
+        </div>
       </section>
     </SiteShell>
   );

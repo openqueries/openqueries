@@ -17,7 +17,8 @@ import {
 
 export const metadata: Metadata = pageMetadata({
   path: "/",
-  title: "Open Queries — AI Search Query Inspector",
+  title:
+    "Open Queries — AI Search Query Inspector for ChatGPT, Claude & Google AI",
   description: DEFAULT_DESCRIPTION,
 });
 
@@ -41,16 +42,16 @@ const capabilities = [
 
 const searchGuides = [
   {
+    href: "/ai-search-optimization",
+    eyebrow: "Practical workflow",
+    title: "AI search optimization",
+    copy: "Connect human demand, retrieval evidence, one canonical and measurable outcomes without AI-only gimmicks.",
+  },
+  {
     href: "/ai-search-visibility",
     eyebrow: "AI visibility",
     title: "AI search visibility",
     copy: "Connect observed retrieval queries with citations, referrals and measurable visibility work.",
-  },
-  {
-    href: "/google-ai-overviews",
-    eyebrow: "Google AI Overviews",
-    title: "Google AI Overview queries",
-    copy: "Understand the seed query and the expanded searches that Google exposes around an AI Overview.",
   },
   {
     href: "/generative-engine-optimization",
@@ -63,6 +64,12 @@ const searchGuides = [
     eyebrow: "AEO",
     title: "Answer engine optimization",
     copy: "Turn answerable questions, source evidence and query language into a practical AEO framework.",
+  },
+  {
+    href: "/fan-out-queries",
+    eyebrow: "Retrieval vocabulary",
+    title: "Fan-out queries",
+    copy: "See how one broad information need can become several narrower evidence searches.",
   },
 ];
 
@@ -77,6 +84,16 @@ export default function HomePage() {
           url: absoluteUrl("/"),
           description: DEFAULT_DESCRIPTION,
           inLanguage: "en",
+        }}
+      />
+      <StructuredData
+        value={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Open Queries Contributors",
+          url: absoluteUrl("/"),
+          logo: absoluteUrl("/og.png"),
+          sameAs: [GITHUB_URL],
         }}
       />
       <StructuredData
@@ -136,19 +153,73 @@ export default function HomePage() {
           <span className="trust-label">Supported now</span>
           <ul className="trust-providers">
             <li>
-              <ProviderLogo provider="chatgpt" size={16} />
-              <strong>ChatGPT</strong>
+              <Link href="/chatgpt-search-queries">
+                <ProviderLogo provider="chatgpt" size={16} />
+                <strong>ChatGPT</strong>
+              </Link>
             </li>
             <li>
-              <ProviderLogo provider="claude" size={16} />
-              <strong>Claude</strong>
+              <Link href="/claude-web-search">
+                <ProviderLogo provider="claude" size={16} />
+                <strong>Claude</strong>
+              </Link>
             </li>
             <li>
-              <ProviderLogo provider="google" size={16} />
-              <strong>Google AI Overviews</strong>
+              <Link href="/google-ai-overviews">
+                <ProviderLogo provider="google" size={16} />
+                <strong>Google AI Overviews</strong>
+              </Link>
             </li>
           </ul>
           <span className="trust-next">Gemini surface next</span>
+        </div>
+      </section>
+
+      <section className="learn-section content-hub-section">
+        <div className="container">
+          <div className="section-heading split">
+            <div>
+              <p className="eyebrow">Open AI search field guide</p>
+              <h2>Start with evidence. Follow it to the workflow.</h2>
+            </div>
+            <Link href="/learn">
+              All guides <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="article-grid">
+            {learnArticles.map((article) => (
+              <Link href={`/learn/${article.slug}`} key={article.slug}>
+                <span>{article.eyebrow}</span>
+                <h3>{article.title}</h3>
+                <p>{article.description}</p>
+                <small>{article.readMinutes} min read</small>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="learn-section pillar-hub-section">
+        <div className="container">
+          <div className="section-heading split">
+            <div>
+              <p className="eyebrow">Intent pillars</p>
+              <h2>Build the complete AI search evidence chain.</h2>
+            </div>
+            <Link href="/install">
+              Inspect queries in Chrome <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="article-grid pillar-grid">
+            {searchGuides.map((guide) => (
+              <Link href={guide.href} key={guide.href}>
+                <span>{guide.eyebrow}</span>
+                <h3>{guide.title}</h3>
+                <p>{guide.copy}</p>
+                <small>Read the practical guide</small>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -192,54 +263,6 @@ export default function HomePage() {
             </li>
           ))}
         </ul>
-      </section>
-
-      <section className="learn-section">
-        <div className="container">
-          <div className="section-heading split">
-            <div>
-              <p className="eyebrow">Open methodology</p>
-              <h2>Read the evidence, not the marketing.</h2>
-            </div>
-            <Link href="/learn">
-              All guides <ArrowRight size={14} />
-            </Link>
-          </div>
-          <div className="article-grid">
-            {learnArticles.slice(0, 4).map((article) => (
-              <Link href={`/learn/${article.slug}`} key={article.slug}>
-                <span>{article.eyebrow}</span>
-                <h3>{article.title}</h3>
-                <p>{article.description}</p>
-                <small>{article.readMinutes} min read</small>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="learn-section">
-        <div className="container">
-          <div className="section-heading split">
-            <div>
-              <p className="eyebrow">AEO / GEO field guide</p>
-              <h2>Follow the questions behind AI search.</h2>
-            </div>
-            <Link href="/install">
-              Inspect them in Chrome <ArrowRight size={14} />
-            </Link>
-          </div>
-          <div className="article-grid">
-            {searchGuides.map((guide) => (
-              <Link href={guide.href} key={guide.href}>
-                <span>{guide.eyebrow}</span>
-                <h3>{guide.title}</h3>
-                <p>{guide.copy}</p>
-                <small>Read the guide</small>
-              </Link>
-            ))}
-          </div>
-        </div>
       </section>
 
       <section className="closing-cta container">

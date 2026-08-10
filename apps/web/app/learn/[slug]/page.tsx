@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { SiteShell } from "../../components";
+import {
+  ArticleToc,
+  Breadcrumbs,
+  ContentSections,
+  DirectAnswer,
+  InstallCta,
+  RelatedLinks,
+  SourceList,
+} from "../../content-components";
 import { StructuredData } from "../../structured-data";
 import { getLearnArticle, learnArticles } from "@/lib/learn";
 import { absoluteUrl, pageMetadata } from "@/lib/site";
@@ -43,44 +51,71 @@ export default async function LearnArticlePage({
           headline: article.title,
           description: article.description,
           datePublished: article.publishedAt,
-          dateModified: article.publishedAt,
+          dateModified: article.updatedAt,
           mainEntityOfPage: absoluteUrl(`/learn/${article.slug}`),
+          isPartOf: {
+            "@type": "WebSite",
+            name: "Open Queries",
+            url: absoluteUrl("/"),
+          },
+          about: article.about.map((name) => ({ "@type": "Thing", name })),
           author: { "@type": "Organization", name: "Open Queries" },
           publisher: { "@type": "Organization", name: "Open Queries" },
+          inLanguage: "en",
+        }}
+      />
+      <StructuredData
+        value={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: absoluteUrl("/"),
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Learn",
+              item: absoluteUrl("/learn"),
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: article.title,
+              item: absoluteUrl(`/learn/${article.slug}`),
+            },
+          ],
         }}
       />
       <header className="article-hero container">
-        <Link href="/learn">← All guides</Link>
+        <Breadcrumbs
+          items={[
+            { href: "/", label: "Home" },
+            { href: "/learn", label: "Learn" },
+            { label: article.title },
+          ]}
+        />
         <p className="eyebrow">{article.eyebrow}</p>
         <h1>{article.title}</h1>
         <p>{article.description}</p>
         <span>
-          {article.readMinutes} min read · Published {article.publishedAt}
+          {article.readMinutes} min read · Updated {article.updatedAt}
         </span>
       </header>
-      <article className="article-body container">
-        {article.sections.map((section) => (
-          <section key={section.heading}>
-            <h2>{section.heading}</h2>
-            {section.paragraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-            {section.equations?.length ? (
-              <div className="article-equations">
-                {section.equations.map((equation) => (
-                  <code key={equation}>{equation}</code>
-                ))}
-              </div>
-            ) : null}
-            {section.bullets ? (
-              <ul>
-                {section.bullets.map((bullet) => (
-                  <li key={bullet}>{bullet}</li>
-                ))}
-              </ul>
-            ) : null}
-          </section>
-        ))}
+      <article className="article-body container content-shell">
+        <div className="content-layout">
+          <ArticleToc sections={article.sections} />
+          <div className="article-main">
+            <DirectAnswer>{article.directAnswer}</DirectAnswer>
+            <ContentSections sections={article.sections} />
+            <SourceList sources={article.sources} />
+            <RelatedLinks links={article.related} />
+            <InstallCta />
+          </div>
+        </div>
       </article>
     </SiteShell>
   );

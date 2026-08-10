@@ -9,9 +9,13 @@ const read = (path) => readFileSync(join(root, path), "utf8");
 test("publishes the mission, privacy boundary and open-source posture", () => {
   const home = read("app/page.tsx");
   assert.match(home, /See the queries behind AI search/u);
-  assert.match(home, /AEO \/ GEO field guide/u);
+  assert.match(home, /Open AI search field guide/u);
+  assert.match(home, /Intent pillars/u);
+  assert.match(home, /href: "\/ai-search-optimization"/u);
+  assert.match(home, /href: "\/ai-search-visibility"/u);
   assert.match(home, /href: "\/generative-engine-optimization"/u);
   assert.match(home, /href: "\/answer-engine-optimization"/u);
+  assert.match(home, /href: "\/fan-out-queries"/u);
   assert.match(home, /Queries, not conversations/u);
   assert.match(home, /AGPL-3\.0/u);
   assert.match(home, /Estimated stays|Observed stays observed/u);
@@ -22,10 +26,52 @@ test("publishes the mission, privacy boundary and open-source posture", () => {
   assert.doesNotMatch(home, /className="method-preview"/u);
 });
 
+test("links every authority article and provider pillar from homepage SSR", () => {
+  const home = read("app/page.tsx");
+  const learn = read("lib/learn.ts");
+
+  for (const slug of [
+    "what-are-fan-out-queries",
+    "aeo-geo-query-data",
+    "observed-vs-estimated-ai-queries",
+    "estimating-fan-out-queries-with-log-probabilities",
+  ]) {
+    assert.match(learn, new RegExp(`slug: "${slug}"`, "u"));
+  }
+  assert.match(home, /learnArticles\.map/u);
+  assert.doesNotMatch(home, /learnArticles\.slice/u);
+  assert.match(home, /href="\/chatgpt-search-queries"/u);
+  assert.match(home, /href="\/claude-web-search"/u);
+  assert.match(home, /href="\/google-ai-overviews"/u);
+});
+
 test("connects demand-led topic pages to the install funnel", () => {
   assert.match(read("app/components.tsx"), /href="\/ai-search-visibility"/u);
+  assert.match(read("app/components.tsx"), /href="\/ai-search-optimization"/u);
   assert.match(read("lib/topics.ts"), /label: "Install Open Queries"/u);
   assert.match(read("lib/topics.ts"), /label: "Inspect queries in Chrome"/u);
+});
+
+test("publishes complete content layouts and structured data", () => {
+  const topic = read("app/[topic]/page.tsx");
+  const article = read("app/learn/[slug]/page.tsx");
+  const components = read("app/content-components.tsx");
+
+  for (const source of [topic, article]) {
+    assert.match(source, /BreadcrumbList/u);
+    assert.match(source, /datePublished/u);
+    assert.match(source, /dateModified/u);
+    assert.match(source, /mainEntityOfPage/u);
+    assert.match(source, /isPartOf/u);
+    assert.match(source, /DirectAnswer/u);
+    assert.match(source, /ArticleToc/u);
+    assert.match(source, /SourceList/u);
+    assert.match(source, /RelatedLinks/u);
+  }
+
+  assert.match(components, /className="evidence-table"/u);
+  assert.match(components, /className="content-callout"/u);
+  assert.match(read("app/install/page.tsx"), /AI search extension/u);
 });
 
 test("ships stable SEO, methodology and legal surfaces", () => {

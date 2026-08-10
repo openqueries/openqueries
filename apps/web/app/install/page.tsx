@@ -4,27 +4,58 @@ import Link from "next/link";
 import { siGithub, siGooglechrome } from "simple-icons";
 
 import { BrandIcon, QueryInterface, SiteShell } from "../components";
-import { CHROME_WEB_STORE_URL, GITHUB_URL, pageMetadata } from "@/lib/site";
+import { Breadcrumbs } from "../content-components";
+import { StructuredData } from "../structured-data";
+import {
+  absoluteUrl,
+  CHROME_WEB_STORE_URL,
+  GITHUB_URL,
+  pageMetadata,
+} from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
   path: "/install",
-  title: "Install the Open Queries Chrome extension",
+  title: "AI Search Extension for ChatGPT, Claude & Google AI",
   description:
-    "Install or preview the open-source Open Queries side-panel extension for ChatGPT, Claude and Google Search.",
+    "Install the open-source Open Queries AI search extension for ChatGPT, Claude and Google AI Overviews, or preview the release on GitHub.",
 });
 
 export default function InstallPage() {
   return (
     <SiteShell>
+      <StructuredData
+        value={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: absoluteUrl("/"),
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Install",
+              item: absoluteUrl("/install"),
+            },
+          ],
+        }}
+      />
       <header className="install-hero container">
+        <Breadcrumbs
+          items={[{ href: "/", label: "Home" }, { label: "Install" }]}
+        />
         <p className="status-label">
           <i /> Chrome Web Store
         </p>
-        <h1>Put the AI search trace beside the conversation.</h1>
+        <h1>Install the Open Queries AI search extension.</h1>
         <p>
-          Open Queries runs as a clean Chrome side panel. It reads explicit
-          web-search tool signals—not chat messages. Accept the privacy setting
-          to reveal the query trace and request fan-out estimates.
+          Open Queries puts the retrieval trace beside ChatGPT, Claude and
+          Google AI Overviews in a clean Chrome side panel. It reads explicit
+          web-search signals—not chat messages—and keeps observed queries
+          separate from on-demand fan-out estimates.
         </p>
         <div className="hero-actions">
           <a className="button primary" href={CHROME_WEB_STORE_URL}>

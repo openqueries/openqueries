@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProviderLogo } from "@openqueries/provider-icons";
 
 import { EditorialPage } from "../components";
+import {
+  ArticleToc,
+  Breadcrumbs,
+  ContentSections,
+  DirectAnswer,
+  InstallCta,
+  RelatedLinks,
+  SourceList,
+} from "../content-components";
 import { StructuredData } from "../structured-data";
 import { topicPageBySlug, topicPages } from "@/lib/topics";
 import { absoluteUrl, pageMetadata } from "@/lib/site";
@@ -40,15 +48,34 @@ export default async function TopicPage({
     <EditorialPage
       eyebrow={topic.eyebrow}
       title={topic.title}
-      intro={topic.intro}
+      intro={topic.description}
+      breadcrumbs={
+        <Breadcrumbs
+          items={[
+            { href: "/", label: "Home" },
+            { href: "/learn", label: "AI search guides" },
+            { label: topic.title },
+          ]}
+        />
+      }
+      wide
     >
       <StructuredData
         value={{
           "@context": "https://schema.org",
-          "@type": "TechArticle",
+          "@type": topic.schemaType,
           headline: topic.title,
           description: topic.description,
           url: absoluteUrl(`/${topic.slug}`),
+          mainEntityOfPage: absoluteUrl(`/${topic.slug}`),
+          datePublished: topic.publishedAt,
+          dateModified: topic.updatedAt,
+          isPartOf: {
+            "@type": "WebSite",
+            name: "Open Queries",
+            url: absoluteUrl("/"),
+          },
+          about: topic.about.map((name) => ({ "@type": "Thing", name })),
           author: {
             "@type": "Organization",
             name: "Open Queries Contributors",
@@ -60,43 +87,54 @@ export default async function TopicPage({
           inLanguage: "en",
         }}
       />
-      {topic.provider && topic.providerLabel ? (
-        <div className="topic-provider">
-          <ProviderLogo
-            provider={topic.provider}
-            size={22}
-            title={topic.providerLabel}
-          />
-          <span>
-            Compatibility target: <strong>{topic.providerLabel}</strong>
-          </span>
-        </div>
-      ) : null}
-      {topic.sections.map((section) => (
-        <section key={section.heading}>
-          <h2>{section.heading}</h2>
-          {section.paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-          {section.bullets ? (
-            <ul>
-              {section.bullets.map((bullet) => (
-                <li key={bullet}>{bullet}</li>
-              ))}
-            </ul>
+      <StructuredData
+        value={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: absoluteUrl("/"),
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "AI search guides",
+              item: absoluteUrl("/learn"),
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: topic.title,
+              item: absoluteUrl(`/${topic.slug}`),
+            },
+          ],
+        }}
+      />
+      <div className="content-layout">
+        <ArticleToc sections={topic.sections} />
+        <div className="article-main">
+          <DirectAnswer>{topic.directAnswer}</DirectAnswer>
+          {topic.provider && topic.providerLabel ? (
+            <div className="topic-provider">
+              <ProviderLogo
+                provider={topic.provider}
+                size={22}
+                title={topic.providerLabel}
+              />
+              <span>
+                Compatibility target: <strong>{topic.providerLabel}</strong>
+              </span>
+            </div>
           ) : null}
-        </section>
-      ))}
-      <section className="related-links">
-        <h2>Continue exploring</h2>
-        <div>
-          {topic.related.map((item) => (
-            <Link href={item.href} key={item.href}>
-              {item.label} <span>↗</span>
-            </Link>
-          ))}
+          <ContentSections sections={topic.sections} />
+          <SourceList sources={topic.sources} />
+          <RelatedLinks links={topic.related} />
+          <InstallCta />
         </div>
-      </section>
+      </div>
     </EditorialPage>
   );
 }
