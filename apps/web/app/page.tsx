@@ -39,6 +39,33 @@ const capabilities = [
   },
 ];
 
+const searchGuides = [
+  {
+    href: "/ai-search-visibility",
+    eyebrow: "AI visibility",
+    title: "AI search visibility",
+    copy: "Connect observed retrieval queries with citations, referrals and measurable visibility work.",
+  },
+  {
+    href: "/google-ai-overviews",
+    eyebrow: "Google AI Overviews",
+    title: "Google AI Overview queries",
+    copy: "Understand the seed query and the expanded searches that Google exposes around an AI Overview.",
+  },
+  {
+    href: "/generative-engine-optimization",
+    eyebrow: "GEO",
+    title: "Generative engine optimization",
+    copy: "Build retrieval-friendly, evidence-led content without pretending that model visibility is a fixed rank.",
+  },
+  {
+    href: "/answer-engine-optimization",
+    eyebrow: "AEO",
+    title: "Answer engine optimization",
+    copy: "Turn answerable questions, source evidence and query language into a practical AEO framework.",
+  },
+];
+
 export default function HomePage() {
   return (
     <SiteShell>
@@ -185,6 +212,30 @@ export default function HomePage() {
                 <h3>{article.title}</h3>
                 <p>{article.description}</p>
                 <small>{article.readMinutes} min read</small>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="learn-section">
+        <div className="container">
+          <div className="section-heading split">
+            <div>
+              <p className="eyebrow">AEO / GEO field guide</p>
+              <h2>Follow the questions behind AI search.</h2>
+            </div>
+            <Link href="/install">
+              Inspect them in Chrome <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="article-grid">
+            {searchGuides.map((guide) => (
+              <Link href={guide.href} key={guide.href}>
+                <span>{guide.eyebrow}</span>
+                <h3>{guide.title}</h3>
+                <p>{guide.copy}</p>
+                <small>Read the guide</small>
               </Link>
             ))}
           </div>

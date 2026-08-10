@@ -58,6 +58,7 @@ export const topicPages: TopicPage[] = [
       { href: "/chatgpt-search-history", label: "ChatGPT search history" },
       { href: "/fan-out-queries", label: "Fan-out queries" },
       { href: "/methodology", label: "Mathematical methodology" },
+      { href: "/install", label: "Install Open Queries" },
     ],
   },
   {
@@ -137,6 +138,7 @@ export const topicPages: TopicPage[] = [
       { href: "/fan-out-queries", label: "Fan-out queries" },
       { href: "/methodology", label: "Provider-native methodology" },
       { href: "/privacy", label: "Privacy contract" },
+      { href: "/install", label: "Install Open Queries" },
     ],
   },
   {
@@ -174,6 +176,7 @@ export const topicPages: TopicPage[] = [
       { href: "/fan-out-queries", label: "What are fan-out queries?" },
       { href: "/generative-engine-optimization", label: "GEO guide" },
       { href: "/methodology", label: "Mathematical methodology" },
+      { href: "/install", label: "Install Open Queries" },
     ],
   },
   {
@@ -253,6 +256,7 @@ export const topicPages: TopicPage[] = [
       { href: "/generative-engine-optimization", label: "GEO" },
       { href: "/answer-engine-optimization", label: "AEO" },
       { href: "/fan-out-queries", label: "Fan-out queries" },
+      { href: "/install", label: "Inspect queries in Chrome" },
     ],
   },
   {
@@ -287,6 +291,7 @@ export const topicPages: TopicPage[] = [
       { href: "/ai-search-visibility", label: "AI search visibility" },
       { href: "/google-ai-overviews", label: "Google AI Overviews" },
       { href: "/methodology", label: "Open methodology" },
+      { href: "/install", label: "Install Open Queries" },
     ],
   },
   {

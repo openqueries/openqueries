@@ -54,6 +54,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
           <nav aria-label="Main navigation">
             <Link href="/methodology">Methodology</Link>
             <Link href="/learn">Learn</Link>
+            <Link href="/ai-search-visibility">AI visibility</Link>
             <a
               aria-label="Open Queries on GitHub"
               className="nav-icon"

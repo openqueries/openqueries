@@ -9,6 +9,9 @@ const read = (path) => readFileSync(join(root, path), "utf8");
 test("publishes the mission, privacy boundary and open-source posture", () => {
   const home = read("app/page.tsx");
   assert.match(home, /See the queries behind AI search/u);
+  assert.match(home, /AEO \/ GEO field guide/u);
+  assert.match(home, /href: "\/generative-engine-optimization"/u);
+  assert.match(home, /href: "\/answer-engine-optimization"/u);
   assert.match(home, /Queries, not conversations/u);
   assert.match(home, /AGPL-3\.0/u);
   assert.match(home, /Estimated stays|Observed stays observed/u);
@@ -17,6 +20,12 @@ test("publishes the mission, privacy boundary and open-source posture", () => {
   assert.match(home, /ProviderLogo provider="google"/u);
   assert.doesNotMatch(home, /No universal GPT ranker/u);
   assert.doesNotMatch(home, /className="method-preview"/u);
+});
+
+test("connects demand-led topic pages to the install funnel", () => {
+  assert.match(read("app/components.tsx"), /href="\/ai-search-visibility"/u);
+  assert.match(read("lib/topics.ts"), /label: "Install Open Queries"/u);
+  assert.match(read("lib/topics.ts"), /label: "Inspect queries in Chrome"/u);
 });
 
 test("ships stable SEO, methodology and legal surfaces", () => {
