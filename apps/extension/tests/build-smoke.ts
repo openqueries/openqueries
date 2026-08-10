@@ -17,7 +17,7 @@ async function main() {
   };
 
   assert.equal(manifest.name, "Open Queries – AI Search Query Inspector");
-  assert.equal(manifest.version, "1.0.2");
+  assert.equal(manifest.version, "1.0.3");
   assert.equal(
     manifest.description,
     "See ChatGPT, Claude and Google AI search queries in a local side panel, then inspect likely fan-out queries on demand.",

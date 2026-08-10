@@ -215,9 +215,11 @@ function QueryCard({
 
 function PrivacyGate({
   accepted,
+  disabled,
   onChange,
 }: {
   accepted: boolean;
+  disabled: boolean;
   onChange: (accepted: boolean) => void;
 }) {
   return (
@@ -237,10 +239,13 @@ function PrivacyGate({
           <small>Show queries and enable fan-out estimates</small>
         </div>
         <button
+          type="button"
           className={`switch ${accepted ? "on" : ""}`}
           role="switch"
           aria-label="Accept privacy settings"
           aria-checked={accepted}
+          aria-busy={disabled}
+          disabled={disabled}
           onClick={() => onChange(!accepted)}
         >
           <i />
@@ -281,6 +286,7 @@ export default function SidePanel() {
   const [view, setView] = useState<View>("current");
   const [filter, setFilter] = useState("");
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [privacySaving, setPrivacySaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const privacyAccepted = Boolean(state?.privacyAccepted);
 
@@ -327,12 +333,30 @@ export default function SidePanel() {
   };
 
   const setPrivacyAccepted = async (accepted: boolean) => {
-    const response = await message({
-      type: "openqueries:set-privacy",
-      accepted,
-    });
-    if (!response.ok) setError(response.error);
-    else if (response.state) setState(response.state);
+    if (!state || privacySaving) return;
+    const previousState = state;
+
+    setError(null);
+    setPrivacySaving(true);
+    setState({ ...state, privacyAccepted: accepted });
+
+    try {
+      const response = await message({
+        type: "openqueries:set-privacy",
+        accepted,
+      });
+      if (!response.ok) {
+        setState(previousState);
+        setError(response.error);
+      } else if (response.state) {
+        setState(response.state);
+      }
+    } catch {
+      setState(previousState);
+      setError("Could not update the privacy setting. Please try again.");
+    } finally {
+      setPrivacySaving(false);
+    }
   };
 
   const clearLocal = async () => {
@@ -427,10 +451,13 @@ export default function SidePanel() {
                 </span>
               </div>
               <button
+                type="button"
                 className={`switch ${privacyAccepted ? "on" : ""}`}
                 role="switch"
                 aria-label="Accept privacy settings"
                 aria-checked={privacyAccepted}
+                aria-busy={privacySaving}
+                disabled={privacySaving}
                 onClick={() => void setPrivacyAccepted(!privacyAccepted)}
               >
                 <i />
@@ -490,6 +517,7 @@ export default function SidePanel() {
         ) : !privacyAccepted ? (
           <PrivacyGate
             accepted={privacyAccepted}
+            disabled={privacySaving}
             onChange={(accepted) => void setPrivacyAccepted(accepted)}
           />
         ) : events.length ? (

@@ -14,6 +14,12 @@ test("privacy acceptance gates every query view", () => {
   assert.match(panel, /: !privacyAccepted \? \(/u);
   assert.match(panel, /<PrivacyGate/u);
   assert.match(panel, /aria-label="Accept privacy settings"/u);
+  assert.match(
+    panel,
+    /setState\(\{ \.\.\.state, privacyAccepted: accepted \}\);/u,
+  );
+  assert.match(panel, /setState\(previousState\);/u);
+  assert.match(panel, /aria-busy=\{privacySaving\}/u);
 });
 
 test("product privacy copy avoids contribution and donation language", () => {

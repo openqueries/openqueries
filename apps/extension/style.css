@@ -565,6 +565,10 @@ a {
   cursor: pointer;
   transition: background 0.15s;
 }
+.switch:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
 .switch i {
   width: 15px;
   height: 15px;
