@@ -75,7 +75,7 @@ export default function OptionsPage() {
           <span>
             <strong>Accept privacy settings</strong>
             <small>
-              Every eligible web-search query—not chats—is sent to Open Queries.
+              Every observed web-search query—not chats—is sent to Open Queries.
               Acceptance unlocks the query trace and fan-out estimates and can
               be switched off at any time.
             </small>

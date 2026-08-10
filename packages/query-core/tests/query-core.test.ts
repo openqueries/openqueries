@@ -5,7 +5,6 @@ import {
   inversePerplexity,
   nativeInversePerplexityScore,
   normalizeQuery,
-  querySafety,
   rankNativeFanOuts,
   uniqueQueries,
   wilsonInterval95,
@@ -16,16 +15,6 @@ test("normalizes query typography without rewriting meaning", () => {
     normalizeQuery("  What   is “fan-out” search?  "),
     'What is "fan-out" search?',
   );
-});
-
-test("blocks common secrets and direct identifiers before transfer", () => {
-  assert.equal(querySafety("find jane@example.com").reason, "email");
-  assert.equal(
-    querySafety(`use token sk-${"abcdefghijklmnopqrstuvwxyz123456"}`).reason,
-    "secret",
-  );
-  assert.equal(querySafety("call +49 151 23456789").reason, "phone");
-  assert.equal(querySafety("cloudflare d1 aggregate query").safe, true);
 });
 
 test("deduplicates and ranks inverse-perplexity candidates", () => {
@@ -41,6 +30,19 @@ test("deduplicates and ranks inverse-perplexity candidates", () => {
   assert.equal(ranked[0]?.query, "first");
   assert.equal(ranked[0]?.rank, 1);
   assert.equal(ranked[0]?.score.kind, "native_inverse_perplexity");
+});
+
+test("does not rewrite or heuristically block valid query syntax", () => {
+  assert.deepEqual(
+    uniqueQueries([
+      "Chrome side panel API manifest v3 2026",
+      "site:developer.chrome.com sidePanel API",
+    ]),
+    [
+      "Chrome side panel API manifest v3 2026",
+      "site:developer.chrome.com sidePanel API",
+    ],
+  );
 });
 
 test("computes token-normalized perplexity and a Wilson interval", () => {

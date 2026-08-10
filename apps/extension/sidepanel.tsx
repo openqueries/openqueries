@@ -12,7 +12,7 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
-import { OpenQueriesMark, ProviderLogo } from "@openqueries/provider-icons";
+import { ProviderLogo } from "@openqueries/provider-icons";
 
 import type {
   LocalQueryEvent,
@@ -160,13 +160,10 @@ function QueryCard({
         <span className="provenance-badge">{kindLabel(event)}</span>
       </div>
       <p className="query-text">{event.query}</p>
-      {event.privacyBlockedReason ? (
-        <p className="privacy-note">Kept local · possible sensitive data</p>
-      ) : null}
       <div className="query-actions">
         <button
           className="estimate-button"
-          disabled={loading || Boolean(event.privacyBlockedReason)}
+          disabled={loading}
           onClick={() => onEstimate(event.eventId)}
         >
           {loading ? (
@@ -230,7 +227,7 @@ function PrivacyGate({
       <p>Privacy not accepted</p>
       <h2>Accept privacy to view queries</h2>
       <span>
-        When accepted, every eligible web-search query is sent to Open Queries.
+        When accepted, every observed web-search query is sent to Open Queries.
         Chat messages are never sent.
       </span>
       <div className="privacy-gate-control">
@@ -281,6 +278,40 @@ function EmptyState({ current }: { current: boolean }) {
   );
 }
 
+const providerDestinations = [
+  {
+    provider: "chatgpt" as const,
+    label: "ChatGPT",
+    href: "https://chatgpt.com/",
+  },
+  { provider: "claude" as const, label: "Claude", href: "https://claude.ai/" },
+  {
+    provider: "google" as const,
+    label: "Google",
+    href: "https://www.google.com/",
+  },
+];
+
+function UnsupportedTab() {
+  return (
+    <div className="unsupported-tab">
+      <h1>Open a supported site</h1>
+      <p>Queries appear on ChatGPT, Claude and Google Search.</p>
+      <div className="provider-destinations">
+        {providerDestinations.map(({ provider, label, href }) => (
+          <a key={provider} href={href} target="_blank" rel="noreferrer">
+            <span className={`platform-mark ${provider}`}>
+              <ProviderLogo provider={provider} size={18} />
+            </span>
+            {label}
+            <ChevronRight size={15} />
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function SidePanel() {
   const [state, setState] = useState<PublicState | null>(null);
   const [view, setView] = useState<View>("current");
@@ -289,6 +320,8 @@ export default function SidePanel() {
   const [privacySaving, setPrivacySaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const privacyAccepted = Boolean(state?.privacyAccepted);
+  const unsupportedCurrentTab =
+    Boolean(state) && view === "current" && !state?.activeTabPlatform;
 
   const load = useCallback(async () => {
     const response = await message({ type: "openqueries:get-state" });
@@ -300,10 +333,12 @@ export default function SidePanel() {
     const reload = () => void load();
     chrome.storage.onChanged.addListener(reload);
     chrome.tabs.onActivated.addListener(reload);
+    chrome.tabs.onUpdated.addListener(reload);
     chrome.windows.onFocusChanged.addListener(reload);
     return () => {
       chrome.storage.onChanged.removeListener(reload);
       chrome.tabs.onActivated.removeListener(reload);
+      chrome.tabs.onUpdated.removeListener(reload);
       chrome.windows.onFocusChanged.removeListener(reload);
     };
   }, [load]);
@@ -382,33 +417,9 @@ export default function SidePanel() {
 
   return (
     <main className="panel-shell">
-      <header className="panel-header">
-        <a
-          className="brand"
-          href="https://openqueries.org"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <span className="brand-mark">
-            <OpenQueriesMark size={17} />
-          </span>
-          <span>Open Queries</span>
-        </a>
-        <span className={`privacy-status ${privacyAccepted ? "active" : ""}`}>
-          <i /> {privacyAccepted ? "Privacy accepted" : "Privacy not accepted"}
-        </span>
-      </header>
-
-      {view !== "settings" && privacyAccepted ? (
+      {view !== "settings" && privacyAccepted && !unsupportedCurrentTab ? (
         <div className="panel-context">
-          <div>
-            <p>{view === "current" ? "Live query trace" : "Local history"}</p>
-            <h1>
-              {view === "current"
-                ? "What the model searched"
-                : "Queries from the last 30 days"}
-            </h1>
-          </div>
+          <h1>{view === "current" ? "Queries" : "History"}</h1>
           <span>{events.length}</span>
         </div>
       ) : null}
@@ -445,7 +456,7 @@ export default function SidePanel() {
               <div>
                 <strong>Privacy accepted</strong>
                 <span>
-                  Send every eligible model web search and the disclosed Google
+                  Send every observed model web search and the disclosed Google
                   Search exception. Queries and fan-out estimates are visible
                   only while this setting is accepted.
                 </span>
@@ -514,6 +525,8 @@ export default function SidePanel() {
               </a>
             </div>
           </div>
+        ) : unsupportedCurrentTab ? (
+          <UnsupportedTab />
         ) : !privacyAccepted ? (
           <PrivacyGate
             accepted={privacyAccepted}

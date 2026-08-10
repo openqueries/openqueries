@@ -7,7 +7,6 @@ import type {
 
 export type LocalQueryEvent = QueryObservationV1 & {
   tabId: number | null;
-  privacyBlockedReason?: string;
   fanOuts?: FanOutCandidateV2[];
 };
 
@@ -21,6 +20,7 @@ export type ExtensionState = {
 
 export type PublicState = Omit<ExtensionState, "deletionSecret"> & {
   activeTabId: number | null;
+  activeTabPlatform: Platform | null;
 };
 
 export type ObservationInput = {

@@ -46,7 +46,7 @@ test("can collect all 16 independent samples concurrently", async () => {
     await new Promise((resolve) => setTimeout(resolve, 5));
     active -= 1;
     return ["candidate"];
-  }, 16);
+  });
   assert.equal(result.samples.length, 16);
   assert.equal(maximumActive, 16);
 });

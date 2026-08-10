@@ -1,7 +1,7 @@
 {
   "name": "@openqueries/extension",
   "displayName": "Open Queries – AI Search Query Inspector",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "See ChatGPT, Claude and Google AI search queries in a local side panel, then inspect likely fan-out queries on demand.",
   "author": "Open Queries contributors",
   "license": "AGPL-3.0-or-later",
@@ -39,7 +39,22 @@
     ],
     "host_permissions": [
       "https://chatgpt.com/*",
-      "https://openqueries.org/*"
+      "https://claude.ai/*",
+      "https://openqueries.org/*",
+      "https://www.google.com/*",
+      "https://www.google.de/*",
+      "https://www.google.co.uk/*",
+      "https://www.google.fr/*",
+      "https://www.google.es/*",
+      "https://www.google.it/*",
+      "https://www.google.nl/*",
+      "https://www.google.pl/*",
+      "https://www.google.at/*",
+      "https://www.google.ch/*",
+      "https://www.google.ca/*",
+      "https://www.google.com.au/*",
+      "https://www.google.co.in/*",
+      "https://www.google.co.jp/*"
     ],
     "action": {
       "default_title": "Open Queries"

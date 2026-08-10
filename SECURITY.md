@@ -7,7 +7,7 @@ exposure, privacy-boundary bypasses or server-data deletion failures.
 High-priority reports include:
 
 - extraction of chat messages or conversation metadata;
-- sensitive-query filters that can be bypassed;
+- extraction or transfer continuing after privacy is switched off;
 - cross-installation deletion or quota bypasses;
 - provider credentials present in a browser bundle or log;
 - deleted server-side query data remaining accessible after deletion.

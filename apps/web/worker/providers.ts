@@ -11,9 +11,8 @@ import type { AppEnv } from "./env";
 export const FANOUT_PROMPT_VERSION = "fanout-v2.1.0";
 const EMPIRICAL_SAMPLE_COUNT = 16;
 const EMPIRICAL_MINIMUM_SUCCESSES = 12;
-const ANTHROPIC_STREAM_CONCURRENCY = 16;
-const GEMINI_CONCURRENCY = 6;
 const MINIMUM_NATIVE_CANDIDATES = 6;
+const PROVIDER_TIMEOUT_MS = 20_000;
 
 type TokenLogProbability = {
   token?: string;
@@ -75,7 +74,7 @@ async function providerFetch(
 ): Promise<unknown> {
   const response = await fetch(url, {
     ...init,
-    signal: AbortSignal.timeout(45_000),
+    signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
   });
   const payload = (await response.json().catch(() => null)) as {
     error?: { message?: string };
@@ -122,7 +121,7 @@ async function providerEventStream(
 ): Promise<unknown[]> {
   const response = await fetch(url, {
     ...init,
-    signal: AbortSignal.timeout(45_000),
+    signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
   });
   const body = await response.text();
   if (!response.ok) {
@@ -450,26 +449,22 @@ export function rankEmpiricalSamples(samples: string[][]): FanOutCandidateV2[] {
 
 export async function collectEmpiricalSamples(
   sample: () => Promise<string[]>,
-  concurrency: number,
 ): Promise<{ samples: string[][]; failure?: string }> {
   const samples: string[][] = [];
   let failure: string | undefined;
-  for (let offset = 0; offset < EMPIRICAL_SAMPLE_COUNT; offset += concurrency) {
-    const batchSize = Math.min(concurrency, EMPIRICAL_SAMPLE_COUNT - offset);
-    const batch = await Promise.allSettled(
-      Array.from({ length: batchSize }, sample),
-    );
-    for (const result of batch) {
-      if (result.status !== "fulfilled") {
-        if (!failure)
-          failure =
-            result.reason instanceof Error
-              ? result.reason.message.slice(0, 180)
-              : "unknown provider error";
-        continue;
-      }
-      samples.push(result.value);
+  const results = await Promise.allSettled(
+    Array.from({ length: EMPIRICAL_SAMPLE_COUNT }, sample),
+  );
+  for (const result of results) {
+    if (result.status !== "fulfilled") {
+      if (!failure)
+        failure =
+          result.reason instanceof Error
+            ? result.reason.message.slice(0, 180)
+            : "unknown provider error";
+      continue;
     }
+    samples.push(result.value);
   }
   return { samples, failure };
 }
@@ -478,9 +473,8 @@ async function generateClaude(
   env: AppEnv,
   query: string,
 ): Promise<FanOutGeneration> {
-  const { samples, failure } = await collectEmpiricalSamples(
-    () => sampleClaude(env, query),
-    ANTHROPIC_STREAM_CONCURRENCY,
+  const { samples, failure } = await collectEmpiricalSamples(() =>
+    sampleClaude(env, query),
   );
   if (samples.length < EMPIRICAL_MINIMUM_SUCCESSES)
     throw new Error(
@@ -498,9 +492,8 @@ async function generateGemini(
   env: AppEnv,
   query: string,
 ): Promise<FanOutGeneration> {
-  const { samples, failure } = await collectEmpiricalSamples(
-    () => sampleGemini(env, query),
-    GEMINI_CONCURRENCY,
+  const { samples, failure } = await collectEmpiricalSamples(() =>
+    sampleGemini(env, query),
   );
   if (samples.length < EMPIRICAL_MINIMUM_SUCCESSES)
     throw new Error(

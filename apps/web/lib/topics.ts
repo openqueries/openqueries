@@ -92,7 +92,7 @@ export const topicPages: TopicPage[] = [
       {
         heading: "Local history and open aggregation",
         paragraphs: [
-          "Privacy starts unaccepted. Accepting it reveals the query trace, sends every eligible observed query and unlocks fan-out estimates. Estimated fan-outs are never counted as observed demand.",
+          "Privacy starts unaccepted. Accepting it reveals the query trace, sends every observed query and unlocks fan-out estimates. Estimated fan-outs are never counted as observed demand.",
         ],
       },
     ],

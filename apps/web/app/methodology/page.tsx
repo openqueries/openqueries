@@ -141,11 +141,11 @@ export default function MethodologyPage() {
         </p>
         <p>
           Privacy starts unaccepted and is controllable during onboarding and in
-          Settings. Once accepted, every eligible observed query is
-          automatically sent, whether or not its fan-outs are requested. The
-          query trace and fan-out estimation are visible only while privacy is
-          accepted. Raw events expire after 13 months. Estimated fan-outs are
-          returned to the extension and never stored as observed queries.
+          Settings. Once accepted, every observed query is automatically sent,
+          whether or not its fan-outs are requested. The query trace and fan-out
+          estimation are visible only while privacy is accepted. Raw events
+          expire after 13 months. Estimated fan-outs are returned to the
+          extension and never stored as observed queries.
         </p>
       </section>
 

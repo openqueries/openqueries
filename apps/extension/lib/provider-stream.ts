@@ -128,6 +128,7 @@ export function extractSearchQueriesFromPayload(payload: unknown): string[] {
 export function extractSearchQueriesFromTransport(text: string): string[] {
   const output: string[] = [];
   const seen = new Set<string>();
+  const parsedFrames: unknown[] = [];
   const addPayload = (value: unknown) => {
     for (const query of extractSearchQueriesFromPayload(value)) {
       const key = query.toLocaleLowerCase();
@@ -140,7 +141,9 @@ export function extractSearchQueriesFromTransport(text: string): string[] {
   const trimmed = text.trim();
   if (!trimmed) return output;
   try {
-    addPayload(JSON.parse(trimmed));
+    const payload = JSON.parse(trimmed);
+    parsedFrames.push(payload);
+    addPayload(payload);
   } catch {
     for (const frame of text.split(/\r?\n\r?\n/gu)) {
       const data = frame
@@ -151,11 +154,74 @@ export function extractSearchQueriesFromTransport(text: string): string[] {
         .trim();
       if (!data || data === "[DONE]") continue;
       try {
-        addPayload(JSON.parse(data));
+        const payload = JSON.parse(data);
+        parsedFrames.push(payload);
+        addPayload(payload);
       } catch {
         // Incomplete SSE frames are retained by the caller until complete.
       }
     }
   }
+
+  // Anthropic streams tool input as JSON fragments between a search-scoped
+  // content_block_start and content_block_stop. Reassemble only those tool
+  // blocks; ordinary message deltas are never considered query candidates.
+  const anthropicBlocks = new Map<
+    string,
+    { partialJson: string; searchScoped: boolean }
+  >();
+  for (const payload of parsedFrames) {
+    if (!payload || typeof payload !== "object" || Array.isArray(payload))
+      continue;
+    const event = payload as Record<string, unknown>;
+    const index = String(event.index ?? "0");
+    if (event.type === "content_block_start") {
+      const block = event.content_block;
+      if (!block || typeof block !== "object" || Array.isArray(block)) continue;
+      anthropicBlocks.set(index, {
+        partialJson: "",
+        searchScoped: SEARCH_DESCRIPTOR.test(
+          descriptor(block as Record<string, unknown>, "$.content_block"),
+        ),
+      });
+      continue;
+    }
+    const tracked = anthropicBlocks.get(index);
+    if (!tracked) continue;
+    if (event.type === "content_block_delta") {
+      const delta = event.delta;
+      if (delta && typeof delta === "object" && !Array.isArray(delta)) {
+        const partial = (delta as Record<string, unknown>).partial_json;
+        if (typeof partial === "string") tracked.partialJson += partial;
+      }
+      continue;
+    }
+    if (event.type !== "content_block_stop") continue;
+    anthropicBlocks.delete(index);
+    if (!tracked.searchScoped || !tracked.partialJson) continue;
+    try {
+      const input = JSON.parse(tracked.partialJson) as Record<string, unknown>;
+      addPayload({ type: "web_search", input });
+    } catch {
+      // A malformed or incomplete tool input is ignored.
+    }
+  }
   return output;
+}
+
+export function takeCompleteSseFrames(buffer: string): {
+  frames: string[];
+  remainder: string;
+} {
+  const frames: string[] = [];
+  let remainder = buffer;
+  let boundary = remainder.search(/\r?\n\r?\n/u);
+  while (boundary >= 0) {
+    const separator = remainder.slice(boundary).match(/^\r?\n\r?\n/u)?.[0];
+    if (!separator) break;
+    frames.push(remainder.slice(0, boundary));
+    remainder = remainder.slice(boundary + separator.length);
+    boundary = remainder.search(/\r?\n\r?\n/u);
+  }
+  return { frames, remainder };
 }

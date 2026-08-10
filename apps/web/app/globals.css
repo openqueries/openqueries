@@ -230,63 +230,11 @@ button {
   text-align: left;
 }
 
-.interface-top {
-  height: 54px;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.interface-top > div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-}
-
-.interface-logo {
-  width: 25px;
-  height: 25px;
-  border-radius: 7px;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  background: #19191b;
-}
-
-.interface-top small {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #77777e;
-  font-size: 9px;
-}
-
-.interface-top small i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #a8a8ae;
-}
-
 .interface-title {
-  padding: 24px 19px 17px;
+  padding: 17px 19px 14px;
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: end;
-}
-
-.interface-title span {
-  grid-column: 1 / -1;
-  margin-bottom: 6px;
-  color: var(--accent);
-  font:
-    650 8px var(--font-mono),
-    monospace;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .interface-title h2 {

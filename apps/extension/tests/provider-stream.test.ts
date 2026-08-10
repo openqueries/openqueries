@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   extractSearchQueriesFromPayload,
   extractSearchQueriesFromTransport,
+  takeCompleteSseFrames,
 } from "../lib/provider-stream";
 
 test("extracts ChatGPT search_queries metadata without reading message text", () => {
@@ -44,6 +45,34 @@ test("extracts search-tool queries from SSE frames and deduplicates them", () =>
     "OpenAI logprobs API",
     "Claude web search query",
   ]);
+});
+
+test("emits complete SSE frames without waiting for the stream to close", () => {
+  const event = `data: ${JSON.stringify({ message: { metadata: { search_queries: ["site:developer.chrome.com sidePanel API"] } } })}`;
+  const chunk = takeCompleteSseFrames(`${event}\r\n\r\ndata: {\"partial\"`);
+  assert.deepEqual(chunk.frames, [event]);
+  assert.equal(chunk.remainder, 'data: {"partial"');
+  assert.deepEqual(extractSearchQueriesFromTransport(chunk.frames[0] ?? ""), [
+    "site:developer.chrome.com sidePanel API",
+  ]);
+});
+
+test("reassembles Anthropic web-search tool input without reading message deltas", () => {
+  const stream = [
+    `data: ${JSON.stringify({ type: "content_block_start", index: 1, content_block: { type: "server_tool_use", name: "web_search", input: {} } })}`,
+    `data: ${JSON.stringify({ type: "content_block_delta", index: 1, delta: { type: "input_json_delta", partial_json: '{"query":"official Chrome ' } })}`,
+    `data: ${JSON.stringify({ type: "content_block_delta", index: 1, delta: { type: "input_json_delta", partial_json: 'sidePanel API documentation"}' } })}`,
+    `data: ${JSON.stringify({ type: "content_block_stop", index: 1 })}`,
+    `data: ${JSON.stringify({ type: "content_block_delta", index: 2, delta: { type: "text_delta", text: "private assistant response" } })}`,
+    "",
+  ].join("\n\n");
+  assert.deepEqual(extractSearchQueriesFromTransport(stream), [
+    "official Chrome sidePanel API documentation",
+  ]);
+  assert.doesNotMatch(
+    JSON.stringify(extractSearchQueriesFromTransport(stream)),
+    /private assistant response/u,
+  );
 });
 
 test("extracts structured entries from an explicit search_queries array", () => {

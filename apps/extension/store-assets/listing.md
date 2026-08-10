@@ -20,7 +20,7 @@ WHAT YOU CAN INSPECT
 
 PRIVACY ACCEPTANCE
 
-Privacy starts unaccepted. Until you accept it, Current and History show no query data. Once accepted, every eligible observed query is sent with a random pseudonymous installation tag, the query trace becomes visible and fan-out estimates are unlocked. Open Queries does not collect chat messages, conversation titles, account identity or conversation URLs.
+Privacy starts unaccepted. Until you accept it, Current and History show no query data. Once accepted, every observed query is sent with a random pseudonymous installation tag, the query trace becomes visible and fan-out estimates are unlocked. Open Queries does not collect chat messages, conversation titles, account identity or conversation URLs.
 
 PROVIDER-NATIVE METHODOLOGY
 
@@ -74,11 +74,11 @@ Stores the user’s local 30-day query trace, privacy choice, anonymous deletion
 
 ### scripting
 
-Registers the bundled ChatGPT document-start adapter in the page's main world so it can receive provider search metadata that is not rendered in the interface. It emits only explicit search-query fields to the isolated extension context. No remote code is loaded.
+Registers the bundled ChatGPT and Claude document-start adapters in the page's main world so they can receive provider search metadata that is not rendered in the interface. They emit only explicit search-query fields to the isolated extension context. No remote code is loaded.
 
 ### Site access
 
-Declared content scripts run only on ChatGPT, Claude and supported Google Search result pages. They read explicit search-tool UI or, on ChatGPT, explicit `search_queries` metadata. The `chatgpt.com` host permission is required to register that bundled main-world adapter. The `openqueries.org` host permission is used only after privacy acceptance for query transfer, deletion and the user-requested fan-out API.
+Declared content scripts run only on ChatGPT, Claude and supported Google Search result pages. They read explicit search-tool UI or explicit provider search-tool metadata. The `chatgpt.com` and `claude.ai` host permissions are required to register those bundled main-world adapters. The `openqueries.org` host permission is used only after privacy acceptance for query transfer, deletion and the user-requested fan-out API.
 
 ### Remote code
 
@@ -88,7 +88,7 @@ No remote code is used. All executable extension code is included in the submitt
 
 - Website content: explicit web-search query text exposed by a supported provider's search tool.
 - Local processing: enabled automatically for the side-panel trace.
-- Transfer: after privacy is accepted, every eligible observed query is automatically sent, whether or not its fan-outs are requested.
+- Transfer: after privacy is accepted, every observed query is automatically sent, whether or not its fan-outs are requested.
 - Fan-outs: after privacy is accepted, one selected query is sent to the corresponding provider only when the user clicks “Estimate fan-outs”.
 - Visibility: until privacy is accepted, Current and History display no query data and offer the privacy slider directly.
 - Not collected: chat messages, conversation titles, account identity, browsing history outside the supported search surfaces or conversation URLs.

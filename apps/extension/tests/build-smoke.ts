@@ -17,14 +17,29 @@ async function main() {
   };
 
   assert.equal(manifest.name, "Open Queries – AI Search Query Inspector");
-  assert.equal(manifest.version, "1.0.3");
+  assert.equal(manifest.version, "1.0.4");
   assert.equal(
     manifest.description,
     "See ChatGPT, Claude and Google AI search queries in a local side panel, then inspect likely fan-out queries on demand.",
   );
   assert.deepEqual(manifest.host_permissions, [
     "https://chatgpt.com/*",
+    "https://claude.ai/*",
     "https://openqueries.org/*",
+    "https://www.google.com/*",
+    "https://www.google.de/*",
+    "https://www.google.co.uk/*",
+    "https://www.google.fr/*",
+    "https://www.google.es/*",
+    "https://www.google.it/*",
+    "https://www.google.nl/*",
+    "https://www.google.pl/*",
+    "https://www.google.at/*",
+    "https://www.google.ch/*",
+    "https://www.google.ca/*",
+    "https://www.google.com.au/*",
+    "https://www.google.co.in/*",
+    "https://www.google.co.jp/*",
   ]);
 
   assert.equal(
@@ -45,9 +60,12 @@ async function main() {
   const panelBehaviorCalls: unknown[] = [];
   const installedListeners: Array<(details: { reason: string }) => void> = [];
   const messageListeners: unknown[] = [];
+  const registeredMainWorldScripts: chrome.scripting.RegisteredContentScript[] =
+    [];
   const eventId = "estimate-before-privacy-acceptance";
   const selectedEventId = "selected-for-expansion";
   const unselectedEventId = "unselected-observation";
+  const formerlyBlockedEventId = "observation-containing-email";
   const stateKey = "openqueries:state:v1";
   const stored: Record<string, unknown> = {
     [stateKey]: {
@@ -71,14 +89,23 @@ async function main() {
     },
   };
   const fetchCalls: Array<{ url: string; body?: string }> = [];
+  let blockHistoricalTransfer = true;
+  let releaseHistoricalTransfer: (() => void) | undefined;
   const fetchMock = async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     fetchCalls.push({
       url,
       body: typeof init?.body === "string" ? init.body : undefined,
     });
-    if (url.endsWith("/api/v1/events"))
+    if (url.endsWith("/api/v1/events")) {
+      if (blockHistoricalTransfer) {
+        blockHistoricalTransfer = false;
+        await new Promise<void>((resolve) => {
+          releaseHistoricalTransfer = resolve;
+        });
+      }
       return new Response(null, { status: 201 });
+    }
     return new Response(
       JSON.stringify({
         schemaVersion: 2,
@@ -110,7 +137,7 @@ async function main() {
 
   const chromeMock = {
     runtime: {
-      getManifest: () => ({ version: "1.0.1" }),
+      getManifest: () => ({ version: "1.0.4" }),
       onInstalled: {
         addListener: (listener: (details: { reason: string }) => void) =>
           installedListeners.push(listener),
@@ -137,7 +164,23 @@ async function main() {
       },
     },
     scripting: {
-      registerContentScripts: async () => undefined,
+      getRegisteredContentScripts: async () => [
+        {
+          id: "contentsChatgptMain",
+          js: ["stale-chatgpt-main.js"],
+          matches: ["https://chatgpt.com/*"],
+        },
+      ],
+      updateContentScripts: async (
+        scripts: chrome.scripting.RegisteredContentScript[],
+      ) => {
+        registeredMainWorldScripts.push(...scripts);
+      },
+      registerContentScripts: async (
+        scripts: chrome.scripting.RegisteredContentScript[],
+      ) => {
+        registeredMainWorldScripts.push(...scripts);
+      },
     },
   };
 
@@ -160,6 +203,12 @@ async function main() {
   assert.equal(
     JSON.stringify(panelBehaviorCalls),
     JSON.stringify([{ openPanelOnActionClick: true }]),
+  );
+  await new Promise((settled) => setTimeout(settled, 75));
+  assert.deepEqual(
+    new Set(registeredMainWorldScripts.map(({ id }) => id)),
+    new Set(["contentsChatgptMain", "contentsClaudeMain"]),
+    "worker startup updates the existing ChatGPT bridge and registers the missing Claude bridge",
   );
 
   const listener = messageListeners[0] as (
@@ -188,19 +237,30 @@ async function main() {
   );
   assert.equal(fetchCalls.length, 0);
 
-  const privacyResponse = await send({
-    type: "openqueries:set-privacy",
-    accepted: true,
-  });
+  const privacyResponse = await Promise.race([
+    send({
+      type: "openqueries:set-privacy",
+      accepted: true,
+    }),
+    new Promise<never>((_resolve, reject) =>
+      setTimeout(
+        () =>
+          reject(new Error("Privacy control waited for historical transfer")),
+        100,
+      ),
+    ),
+  ]);
   assert.equal(privacyResponse.ok, true);
   const publicState = privacyResponse.state as {
     privacyAccepted?: boolean;
   };
   assert.equal(publicState.privacyAccepted, true);
+  releaseHistoricalTransfer?.();
+  await new Promise((settled) => setTimeout(settled, 0));
   assert.equal(
     fetchCalls.filter(({ url }) => url.endsWith("/api/v1/events")).length,
     1,
-    "accepting privacy transfers existing eligible history",
+    "accepting privacy transfers existing observed history",
   );
 
   for (const observation of [
@@ -218,6 +278,13 @@ async function main() {
       query: "site:example.org selected evidence",
       capturedAt: "2026-08-09T12:02:00.000Z",
     },
+    {
+      eventId: formerlyBlockedEventId,
+      platform: "chatgpt",
+      sourceKind: "observed_model_search",
+      query: "site:example.org contact jane@example.com",
+      capturedAt: "2026-08-09T12:03:00.000Z",
+    },
   ]) {
     const observationResponse = await send(
       { type: "openqueries:observation", observation },
@@ -228,10 +295,20 @@ async function main() {
   const eventCalls = fetchCalls.filter(({ url }) =>
     url.endsWith("/api/v1/events"),
   );
-  assert.equal(eventCalls.length, 3);
+  assert.equal(eventCalls.length, 4);
   const transferredEvents = eventCalls.flatMap(({ body }) => {
     assert.ok(body);
-    return [(JSON.parse(body) as { event: { eventId: string } }).event];
+    return [
+      (
+        JSON.parse(body) as {
+          event: {
+            eventId: string;
+            extensionVersion?: string;
+            adapterVersion?: string;
+          };
+        }
+      ).event,
+    ];
   });
   assert.ok(
     eventCalls.every(
@@ -244,7 +321,22 @@ async function main() {
         ({ eventId: transferredEventId }) => transferredEventId,
       ),
     ),
-    new Set([eventId, unselectedEventId, selectedEventId]),
+    new Set([
+      eventId,
+      unselectedEventId,
+      selectedEventId,
+      formerlyBlockedEventId,
+    ]),
+  );
+  assert.ok(
+    transferredEvents
+      .filter(
+        ({ eventId: transferredEventId }) => transferredEventId !== eventId,
+      )
+      .every(
+        ({ extensionVersion, adapterVersion }) =>
+          extensionVersion === "1.0.4" && adapterVersion === "1.0.3",
+      ),
   );
 
   const estimateResponse = await send({
@@ -263,7 +355,7 @@ async function main() {
   );
 
   console.log(
-    "Production MV3 worker transfers every eligible observation and gates the query UI and estimates on privacy acceptance.",
+    "Production MV3 worker transfers every observed query and gates the query UI and estimates on privacy acceptance.",
   );
 }
 

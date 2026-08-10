@@ -71,13 +71,14 @@ export async function readState(): Promise<ExtensionState> {
   const events = pruned.map((event) => {
     const legacyEvent = event as LocalQueryEvent & {
       donationBlockedReason?: string;
+      privacyBlockedReason?: string;
     };
-    const { donationBlockedReason: legacyBlockedReason, ...currentEvent } =
-      legacyEvent;
-    const migratedEvent = legacyBlockedReason
-      ? { ...currentEvent, privacyBlockedReason: legacyBlockedReason }
-      : currentEvent;
-    if (legacyBlockedReason) migrated = true;
+    const {
+      donationBlockedReason: legacyDonationBlock,
+      privacyBlockedReason: legacyPrivacyBlock,
+      ...migratedEvent
+    } = legacyEvent;
+    if (legacyDonationBlock || legacyPrivacyBlock) migrated = true;
     if (
       !migratedEvent.fanOuts?.length ||
       migratedEvent.fanOuts.every(
@@ -128,9 +129,10 @@ export async function rotateDonor(
 export function toPublicState(
   state: ExtensionState,
   activeTabId: number | null,
+  activeTabPlatform: PublicState["activeTabPlatform"] = null,
 ): PublicState {
   const { deletionSecret: _deletionSecret, ...safe } = state;
-  return { ...safe, activeTabId };
+  return { ...safe, activeTabId, activeTabPlatform };
 }
 
 export { STATE_KEY };

@@ -104,20 +104,8 @@ export function QueryInterface() {
       className="query-interface"
       aria-label="Preview of the Open Queries Chrome side panel"
     >
-      <div className="interface-top">
-        <div>
-          <span className="interface-logo">
-            <OpenQueriesMark size={16} />
-          </span>
-          <strong>Open Queries</strong>
-        </div>
-        <small>
-          <i /> Privacy accepted
-        </small>
-      </div>
       <div className="interface-title">
-        <span>Live query trace</span>
-        <h2>What the model searched</h2>
+        <h2>Queries</h2>
         <b>1</b>
       </div>
       <article className="interface-query">

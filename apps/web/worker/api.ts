@@ -4,7 +4,7 @@ import {
   QueryEventUploadV1Schema,
   type FanOutResponseV2,
 } from "@openqueries/contracts";
-import { querySafety, sha256Hex } from "@openqueries/query-core";
+import { sha256Hex } from "@openqueries/query-core";
 
 import type { AppEnv } from "./env";
 import { generateFanOuts } from "./providers";
@@ -71,14 +71,6 @@ async function storeEvent(request: Request, env: AppEnv): Promise<Response> {
   if (!parsed.success)
     return errorResponse(request, env, 400, "Invalid query event payload");
   const event = parsed.data.event;
-  const safety = querySafety(event.query);
-  if (!safety.safe)
-    return errorResponse(
-      request,
-      env,
-      422,
-      "Query is not eligible for transfer",
-    );
   const receivedAt = new Date().toISOString();
   const result = await env.DB.prepare(
     `
@@ -147,15 +139,6 @@ async function fanOuts(request: Request, env: AppEnv): Promise<Response> {
   );
   if (!parsed.success)
     return errorResponse(request, env, 400, "Invalid fan-out request");
-  const safety = querySafety(parsed.data.seed.query);
-  if (!safety.safe)
-    return errorResponse(
-      request,
-      env,
-      422,
-      "This query may contain sensitive data and cannot be sent to a model",
-    );
-
   try {
     const rate = await env.FANOUT_RATE_LIMITER.limit({
       key: clientRateKey(request),

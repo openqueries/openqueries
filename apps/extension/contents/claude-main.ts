@@ -6,25 +6,24 @@ import {
 } from "../lib/provider-stream";
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://chatgpt.com/*"],
+  matches: ["https://claude.ai/*"],
   run_at: "document_start",
   world: "MAIN",
 };
 
 const CHANNEL = "openqueries:provider-query:v1";
-const CHATGPT_TRANSPORT = /\/(?:backend-api|api)\/.*conversation/iu;
+const CLAUDE_TRANSPORT =
+  /\/api\/.*(?:completion|conversation|message|response)/iu;
 
 function publish(query: string): void {
   window.postMessage(
-    { channel: CHANNEL, platform: "chatgpt", query },
+    { channel: CHANNEL, platform: "claude", query },
     window.location.origin,
   );
 }
 
-function inspect(text: string): number {
-  const queries = extractSearchQueriesFromTransport(text);
-  for (const query of queries) publish(query);
-  return queries.length;
+function inspect(text: string): void {
+  for (const query of extractSearchQueriesFromTransport(text)) publish(query);
 }
 
 async function inspectEventStream(response: Response): Promise<void> {
@@ -32,33 +31,36 @@ async function inspectEventStream(response: Response): Promise<void> {
   if (!reader) return;
   const decoder = new TextDecoder();
   let buffer = "";
+  let transcript = "";
 
   while (true) {
     const { done, value } = await reader.read();
     buffer += decoder.decode(value, { stream: !done });
-
     const complete = takeCompleteSseFrames(buffer);
     buffer = complete.remainder;
-    for (const frame of complete.frames) inspect(frame);
-
+    if (complete.frames.length) {
+      transcript += `${complete.frames.join("\n\n")}\n\n`;
+      inspect(transcript);
+      if (transcript.length > 2_000_000)
+        transcript = transcript.slice(-1_000_000);
+    }
     if (done) break;
     if (buffer.length > 2_000_000) buffer = buffer.slice(-1_000_000);
   }
 
-  if (buffer.trim()) inspect(buffer);
+  if (buffer.trim()) inspect(`${transcript}${buffer}`);
 }
 
 async function inspectResponse(response: Response): Promise<void> {
+  if (!CLAUDE_TRANSPORT.test(response.url)) return;
   const contentType = response.headers.get("content-type") ?? "";
   if (!/(?:json|text|event-stream)/iu.test(contentType)) return;
-  if (!CHATGPT_TRANSPORT.test(response.url)) return;
   try {
     if (/event-stream/iu.test(contentType)) {
       await inspectEventStream(response);
       return;
     }
-    const text = await response.text();
-    inspect(text);
+    inspect(await response.text());
   } catch {
     // The page's original response is never touched; inspection is best-effort.
   }
@@ -73,36 +75,6 @@ window.fetch = async (...input) => {
     // Non-cloneable responses remain untouched.
   }
   return response;
-};
-
-const xhrUrls = new WeakMap<XMLHttpRequest, string>();
-const nativeOpen = XMLHttpRequest.prototype.open;
-const nativeSend = XMLHttpRequest.prototype.send;
-
-XMLHttpRequest.prototype.open = function (
-  method: string,
-  url: string | URL,
-  ...rest: unknown[]
-): void {
-  xhrUrls.set(this, String(url));
-  return Reflect.apply(nativeOpen, this, [method, url, ...rest]);
-};
-
-XMLHttpRequest.prototype.send = function (...args: unknown[]): void {
-  this.addEventListener(
-    "load",
-    () => {
-      if (!CHATGPT_TRANSPORT.test(xhrUrls.get(this) ?? "")) return;
-      if (this.responseType !== "" && this.responseType !== "text") return;
-      try {
-        inspect(this.responseText);
-      } catch {
-        // Ignore response modes that do not expose text.
-      }
-    },
-    { once: true },
-  );
-  return Reflect.apply(nativeSend, this, args);
 };
 
 export {};

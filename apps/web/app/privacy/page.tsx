@@ -20,23 +20,22 @@ export default function PrivacyPage() {
       <section>
         <h2>What can be stored locally</h2>
         <p>
-          The extension stores eligible observed queries, platform, source kind,
-          capture time, language, adapter version and generated estimates. Local
-          history is automatically limited to 30 days and 2,000 events and can
-          be deleted at any time.
+          The extension stores observed queries, platform, source kind, capture
+          time, language, adapter version and generated estimates. Local history
+          is automatically limited to 30 days and 2,000 events and can be
+          deleted at any time.
         </p>
       </section>
       <section>
         <h2>What happens when privacy is accepted</h2>
         <p>
           Privacy starts unaccepted. After it is accepted during onboarding or
-          later in Settings, every eligible observed query is automatically sent
-          with a random pseudonymous installation tag, whether or not its
-          fan-outs are requested. For Google Search, the typed search query is
-          included as the clearly disclosed exception. Until privacy is
-          accepted, the Current and History views show no query data. Privacy
-          acceptance can be switched off and server-side query data can be
-          deleted at any time.
+          later in Settings, every observed query is automatically sent with a
+          random pseudonymous installation tag, whether or not its fan-outs are
+          requested. For Google Search, the typed search query is included as
+          the clearly disclosed exception. Until privacy is accepted, the
+          Current and History views show no query data. Privacy acceptance can
+          be switched off and server-side query data can be deleted at any time.
         </p>
       </section>
       <section>
@@ -60,14 +59,13 @@ export default function PrivacyPage() {
         </p>
       </section>
       <section>
-        <h2>Filtering, processors and retention</h2>
+        <h2>Processing and retention</h2>
         <p>
-          Queries matching common email, phone, payment-card, access-token,
-          private-key or high-entropy secret patterns are blocked from transfer.
-          While privacy is accepted, requested fan-out generation sends the
-          selected safe query to the corresponding model provider for
-          provider-native estimation. Open Queries never sends one provider's
-          candidates to a universal GPT ranker.
+          While privacy is accepted, every observed search query is sent to Open
+          Queries. A requested fan-out generation sends the selected query to
+          the corresponding model provider for provider-native estimation. Open
+          Queries never sends one provider's candidates to a universal GPT
+          ranker.
         </p>
         <p>
           Raw query events expire after 13 months. Cloudflare provides hosting

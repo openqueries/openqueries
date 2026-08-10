@@ -34,10 +34,10 @@ but Current and History display no query data. Accepting privacy sends every
 eligible observed query and unlocks the trace plus explicit, user-requested
 fan-out estimation.
 
-Sensitive-pattern checks run before transfer and again at the Worker. Unsafe
-queries stay local and cannot be sent for fan-out estimation. Old local V1
-estimates are discarded during state hydration rather than displayed under the
-new evidence contract.
+No query-syntax heuristic rewrites or selectively blocks observed searches.
+Once privacy is accepted, every observed search query follows the same direct
+transfer path. Old local V1 estimates are discarded during state hydration
+rather than displayed under the new evidence contract.
 
 ## Provider-native estimation
 
@@ -53,12 +53,11 @@ Anthropic does not expose Claude output logprobs. Google's configured Gemini
 Developer API model currently rejects `responseLogprobs`. Those providers use
 16 independent native structured-output samples, require at least 12 successes,
 and return inclusion frequency with a Wilson 95% confidence interval. Claude's
-independent calls use SSE so Cloudflare can release connection slots on response
-headers while bodies are still streaming; Gemini uses six-request batches.
-Transport concurrency does not alter the sample count or estimator. There is
-no shared GPT scorer, cross-provider fallback, ordinal pseudo-score or character
-weighting. The actual method, model and prompt version travel with every V2
-response.
+independent calls use SSE. The 16 independent Claude or Gemini samples run
+concurrently; transport mechanics do not alter the sample count or estimator.
+There is no shared GPT scorer, cross-provider fallback, ordinal pseudo-score or
+character weighting. The actual method, model and prompt version travel with
+every V2 response.
 
 ## Worker boundary
 
