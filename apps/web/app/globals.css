@@ -1,3 +1,5 @@
+@import "katex/dist/katex.min.css";
+
 :root {
   --page: #fafafa;
   --surface: #ffffff;
@@ -1356,9 +1358,9 @@ button {
 .formula,
 .article-equations {
   margin: 27px 0;
-  padding: 20px;
+  padding: 22px 24px;
   border: 1px solid #dedcf5;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #f7f6ff;
 }
 
@@ -1381,12 +1383,14 @@ button {
 }
 
 .display-math {
+  width: 100%;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 4px 0;
+  padding: 8px 0;
   color: #3e34a0;
-  font-size: 14px;
+  font-size: clamp(13px, 1.7vw, 16px);
+  scrollbar-width: thin;
 }
 
 .inline-math {
@@ -1396,12 +1400,20 @@ button {
 
 .display-math .katex-display {
   margin: 0;
-  text-align: left;
+  min-width: max-content;
+  text-align: center;
 }
 
-.formula span {
+.formula.stack > .display-math + .display-math {
+  padding-top: 18px;
+  border-top: 1px solid rgba(102, 86, 232, 0.14);
+}
+
+.formula > figcaption {
   display: block;
-  margin-top: 11px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(102, 86, 232, 0.14);
   color: #686675;
   font-size: 11px;
   line-height: 1.6;

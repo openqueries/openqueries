@@ -91,6 +91,11 @@ test("ships stable SEO, methodology and legal surfaces", () => {
   }
   assert.match(read("app/math.tsx"), /renderToString/u);
   assert.match(read("app/math.tsx"), /htmlAndMathml/u);
+  assert.match(
+    read("app/globals.css"),
+    /@import "katex\/dist\/katex\.min\.css"/u,
+  );
+  assert.doesNotMatch(read("app/layout.tsx"), /katex\/dist\/katex\.min\.css/u);
   assert.match(read("worker/index.ts"), /font-src 'self' data:/u);
   assert.match(
     read("public/.well-known/security.txt"),
@@ -110,6 +115,7 @@ test("ships stable SEO, methodology and legal surfaces", () => {
 
 test("methodology never treats estimated fan-outs as observed demand", () => {
   const method = read("app/methodology/page.tsx");
+  const styles = read("app/globals.css");
   assert.match(
     method,
     /Estimated fan-outs are\s+returned to the\s+extension and never stored as observed queries/u,
@@ -117,6 +123,9 @@ test("methodology never treats estimated fan-outs as observed demand", () => {
   assert.match(method, /not search\s+volume/u);
   assert.match(method, /GPT-5\.6 Luna/u);
   assert.match(method, /Wilson 95% confidence interval/u);
+  assert.match(method, /<figcaption>/u);
+  assert.match(styles, /\.formula > figcaption/u);
+  assert.doesNotMatch(styles, /\.formula span\s*\{/u);
   assert.doesNotMatch(method, /shared\s+low-cost scorer/u);
 });
 

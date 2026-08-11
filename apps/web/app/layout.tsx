@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { DEFAULT_DESCRIPTION, SITE_ORIGIN } from "@/lib/site";
-import "katex/dist/katex.min.css";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-sans", subsets: ["latin"] });

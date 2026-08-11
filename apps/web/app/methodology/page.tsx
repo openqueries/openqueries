@@ -59,14 +59,14 @@ export default function MethodologyPage() {
           <InlineMath>p_v</InlineMath>, the model produces one structured vector
           of exactly 12 candidate queries:
         </p>
-        <div className="formula">
+        <figure className="formula">
           <DisplayMath>{String.raw`Y=(q_1,\ldots,q_{12})\sim P_m(\,\cdot\mid x,p_v\,)`}</DisplayMath>
-          <span>
+          <figcaption>
             The prompt asks only for the most likely other web-search queries
             from the same fan-out as the observed query. It contains no domain,
             operator, language, category, rationale, scoring or ranking rules.
-          </span>
-        </div>
+          </figcaption>
+        </figure>
         <p>
           Candidates are normalized with NFKC, whitespace normalization and
           exact case-folded deduplication. Unsafe strings are removed. No model
@@ -84,16 +84,16 @@ export default function MethodologyPage() {
           JSON string content. Every token is included once; token length does
           not create extra weight.
         </p>
-        <div className="formula stack">
+        <figure className="formula stack">
           <DisplayMath>{String.raw`\bar{\ell}(q)=\frac{1}{|T(q)|}\sum_{t_k\in T(q)}\log P_m(t_k\mid t_{<k},x,p_v)`}</DisplayMath>
           <DisplayMath>{String.raw`\operatorname{PP}(q)=\exp\!\left(-\bar{\ell}(q)\right)`}</DisplayMath>
           <DisplayMath>{String.raw`s(q)=\operatorname{PP}(q)^{-1}=\exp\!\left(\bar{\ell}(q)\right)`}</DisplayMath>
-          <span>
+          <figcaption>
             Lower perplexity implies greater compatibility with that provider’s
             own decoding distribution in this run. The API exposes the mean log
             probability, perplexity, inverse perplexity and token count.
-          </span>
-        </div>
+          </figcaption>
+        </figure>
         <p>
           The system fails closed if fewer than six candidates can be mapped to
           finite native token logprobs. It does not substitute another provider
@@ -116,16 +116,16 @@ export default function MethodologyPage() {
           At least 12 must succeed. Parallel transport changes wall-clock time,
           not the number or statistical independence of those model calls.
         </p>
-        <div className="formula stack">
+        <figure className="formula stack">
           <DisplayMath>{String.raw`K(q)=\sum_{i=1}^{n}\mathbf{1}\!\left[q\in Y_i\right]`}</DisplayMath>
           <DisplayMath>{String.raw`\hat p(q)=\frac{K(q)}{n}`}</DisplayMath>
           <DisplayMath>{String.raw`\operatorname{CI}_{95}(q)=\frac{\hat p+\frac{z^2}{2n}\;\pm\;z\sqrt{\frac{\hat p(1-\hat p)}{n}+\frac{z^2}{4n^2}}}{1+\frac{z^2}{n}},\qquad z=1.95996`}</DisplayMath>
-          <span>
+          <figcaption>
             Here z = 1.95996 and n is the number of valid samples from the named
             provider. Queries rank by inclusion frequency, then mean first
             position, then lexical order.
-          </span>
-        </div>
+          </figcaption>
+        </figure>
         <p>
           Exact normalized matches are counted once per sample. The score object
           exposes K, n and its Wilson 95% confidence interval, making the wider
