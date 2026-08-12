@@ -130,6 +130,14 @@ async function newTarget(port, url) {
   return json(port, `/json/new?${encodeURIComponent(url)}`, { method: "PUT" });
 }
 
+async function activateTarget(port, targetId) {
+  const response = await fetch(
+    `http://127.0.0.1:${port}/json/activate/${targetId}`,
+  );
+  if (!response.ok)
+    throw new Error(`Chrome could not activate target ${targetId}`);
+}
+
 async function evaluate(session, expression) {
   const result = await session.send("Runtime.evaluate", {
     expression,
@@ -190,6 +198,7 @@ async function exerciseProvider(port, platform, query) {
     `fetch(${JSON.stringify(`${origin}/api/openqueries-test`)}).then(response => response.text())`,
   );
   session.close();
+  return target;
 }
 
 async function findOpenQueriesRuntime(port) {
@@ -334,8 +343,12 @@ try {
     chatgpt: "fresh install ChatGPT transport query",
     claude: "fresh install Claude transport query",
   };
-  await exerciseProvider(port, "chatgpt", expected.chatgpt);
-  await exerciseProvider(port, "claude", expected.claude);
+  const chatGptTarget = await exerciseProvider(
+    port,
+    "chatgpt",
+    expected.chatgpt,
+  );
+  const claudeTarget = await exerciseProvider(port, "claude", expected.claude);
 
   const captured = await eventually(async () => {
     const state = await evaluate(
@@ -368,10 +381,39 @@ try {
   assert.match(historyText, /fresh install ChatGPT transport query/u);
   assert.match(historyText, /fresh install Claude transport query/u);
 
+  await activateTarget(port, chatGptTarget.id);
+  await eventually(async () => {
+    const state = await evaluate(
+      extension,
+      `chrome.runtime.sendMessage({type:"openqueries:get-state"})`,
+    );
+    return state.state.activeTabPlatform === "chatgpt";
+  }, "Fresh-install state did not follow the active ChatGPT tab");
+  await evaluate(
+    history,
+    `[...document.querySelectorAll("button")].find(button => button.textContent?.trim() === "Current")?.click()`,
+  );
+  const chatGptCurrentText = await eventually(async () => {
+    const text = await evaluate(history, "document.body.innerText");
+    return text.includes(expected.chatgpt) && !text.includes(expected.claude)
+      ? text
+      : null;
+  }, "Fresh-install Current view did not isolate the active ChatGPT query");
+  assert.match(chatGptCurrentText, /fresh install ChatGPT transport query/u);
+
+  await activateTarget(port, claudeTarget.id);
+  const claudeCurrentText = await eventually(async () => {
+    const text = await evaluate(history, "document.body.innerText");
+    return text.includes(expected.claude) && !text.includes(expected.chatgpt)
+      ? text
+      : null;
+  }, "Fresh-install Current view did not follow the active Claude tab");
+  assert.match(claudeCurrentText, /fresh install Claude transport query/u);
+
   history.close();
   extension.close();
   console.log(
-    `Fresh Chrome install ${extensionId} captured and displayed ChatGPT and Claude transport queries.`,
+    `Fresh Chrome install ${extensionId} captured ChatGPT and Claude, displayed History, and followed both Current tab contexts.`,
   );
 } finally {
   chrome.kill("SIGTERM");

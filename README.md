@@ -98,9 +98,10 @@ The production Chrome package is generated at
 `apps/extension/build/chrome-mv3-prod.zip`. The build gate validates the final
 manifest and bundled MV3 service worker, then installs that exact build into a
 new temporary Chrome-for-Testing profile. The browser test verifies privacy
-activation, ChatGPT and Claude transport capture, and both records in the
-rendered History view before packaging. It uses a mock keychain and never opens
-the developer's normal Chrome profile.
+activation, ChatGPT and Claude transport capture, both records in the rendered
+History view, and provider-specific records in Current while switching the
+active tab before packaging. It uses a mock keychain and never opens the
+developer's normal Chrome profile.
 
 ## Contributing and security
 

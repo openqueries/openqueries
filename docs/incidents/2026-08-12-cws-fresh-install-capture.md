@@ -36,7 +36,8 @@ installable package.
   `registerContentScripts` or `chrome.scripting`.
 - The release build is installed into a new temporary Chrome-for-Testing profile.
   The test enables privacy, captures one explicit transport query from each
-  provider and verifies both in the rendered History view.
+  provider, verifies both in the rendered History view, then switches the active
+  provider tab and verifies the provider-specific Current view.
 - The test profile uses `--password-store=basic` and `--use-mock-keychain`; it
   never uses the developer's normal browser profile or Keychain.
 
