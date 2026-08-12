@@ -1,6 +1,7 @@
 import handler from "vinext/server/app-router-entry";
 
 import { handleApi, runRetentionMaintenance } from "./api";
+import { canonicalRequestRedirect } from "./canonical-request";
 import type { AppEnv } from "./env";
 
 function securityHeaders(response: Response): Response {
@@ -27,12 +28,8 @@ const worker = {
     ctx: ExecutionContext,
   ): Promise<Response> {
     const url = new URL(request.url);
-    if (url.hostname === "www.openqueries.org") {
-      url.hostname = "openqueries.org";
-      url.protocol = "https:";
-      url.port = "";
-      return Response.redirect(url.toString(), 308);
-    }
+    const canonicalRedirect = canonicalRequestRedirect(request);
+    if (canonicalRedirect) return canonicalRedirect;
     const apiResponse = await handleApi(request, env);
     if (apiResponse) return securityHeaders(apiResponse);
     // The Cloudflare Vite binding also serves source CSS during `vinext dev`.
