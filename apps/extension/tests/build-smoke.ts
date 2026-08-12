@@ -12,12 +12,19 @@ async function main() {
     description?: string;
     version?: string;
     host_permissions?: string[];
+    permissions?: string[];
     background?: { service_worker?: string };
     side_panel?: { default_path?: string };
+    content_scripts?: Array<{
+      matches?: string[];
+      js?: string[];
+      run_at?: string;
+      world?: string;
+    }>;
   };
 
   assert.equal(manifest.name, "Open Queries – AI Search Query Inspector");
-  assert.equal(manifest.version, "1.0.5");
+  assert.equal(manifest.version, "1.0.6");
   assert.equal(
     manifest.description,
     "See ChatGPT, Claude and Google AI search queries in a local side panel, then inspect likely fan-out queries on demand.",
@@ -41,6 +48,27 @@ async function main() {
     "https://www.google.co.in/*",
     "https://www.google.co.jp/*",
   ]);
+  assert.deepEqual(manifest.permissions, ["sidePanel", "storage"]);
+
+  for (const platform of ["chatgpt", "claude"] as const) {
+    const origin = platform === "chatgpt" ? "chatgpt.com" : "claude.ai";
+    const scripts = manifest.content_scripts?.filter((script) =>
+      script.matches?.some((match) => match.includes(origin)),
+    );
+    assert.equal(
+      scripts?.length,
+      2,
+      `${platform} must ship one isolated bridge and one MAIN-world observer`,
+    );
+    const main = scripts?.find((script) => script.world === "MAIN");
+    assert.equal(main?.run_at, "document_start");
+    assert.match(
+      main?.js?.[0] ?? "",
+      new RegExp(`^${platform}-transport\\..+\\.js$`, "u"),
+    );
+    const isolated = scripts?.find((script) => script.world !== "MAIN");
+    assert.ok(isolated?.js?.length);
+  }
 
   assert.equal(
     manifest.side_panel?.default_path,
@@ -56,14 +84,15 @@ async function main() {
     join(buildDirectory, manifest.background.service_worker),
     "utf8",
   );
+  assert.doesNotMatch(
+    serviceWorker,
+    /registerContentScripts|chrome\.scripting/u,
+    "provider observers must be statically declared so a fresh install cannot miss registration",
+  );
 
   const panelBehaviorCalls: unknown[] = [];
   const installedListeners: Array<(details: { reason: string }) => void> = [];
   const messageListeners: unknown[] = [];
-  const injectedScripts: chrome.scripting.ScriptInjection<never[], unknown>[] =
-    [];
-  const registeredMainWorldScripts: chrome.scripting.RegisteredContentScript[] =
-    [];
   const eventId = "estimate-before-privacy-acceptance";
   const selectedEventId = "selected-for-expansion";
   const unselectedEventId = "unselected-observation";
@@ -140,7 +169,7 @@ async function main() {
   const chromeMock = {
     runtime: {
       getManifest: () => ({
-        version: "1.0.5",
+        version: "1.0.6",
         content_scripts: [
           { matches: ["https://chatgpt.com/*"], js: ["chatgpt.js"] },
           { matches: ["https://claude.ai/*"], js: ["claude.js"] },
@@ -184,31 +213,6 @@ async function main() {
         },
       },
     },
-    scripting: {
-      getRegisteredContentScripts: async () => [
-        {
-          id: "contentsChatgptMain",
-          js: ["stale-chatgpt-main.js"],
-          matches: ["https://chatgpt.com/*"],
-        },
-      ],
-      updateContentScripts: async (
-        scripts: chrome.scripting.RegisteredContentScript[],
-      ) => {
-        registeredMainWorldScripts.push(...scripts);
-      },
-      registerContentScripts: async (
-        scripts: chrome.scripting.RegisteredContentScript[],
-      ) => {
-        registeredMainWorldScripts.push(...scripts);
-      },
-      executeScript: async (
-        injection: chrome.scripting.ScriptInjection<never[], unknown>,
-      ) => {
-        injectedScripts.push(injection);
-        return [];
-      },
-    },
   };
 
   vm.runInNewContext(serviceWorker, {
@@ -231,46 +235,6 @@ async function main() {
     JSON.stringify(panelBehaviorCalls),
     JSON.stringify([{ openPanelOnActionClick: true }]),
   );
-  await new Promise((settled) => setTimeout(settled, 75));
-  assert.deepEqual(
-    new Set(registeredMainWorldScripts.map(({ id }) => id)),
-    new Set(["contentsChatgptMain", "contentsClaudeMain"]),
-    "worker startup updates the existing ChatGPT bridge and registers the missing Claude bridge",
-  );
-  assert.equal(
-    JSON.stringify(
-      injectedScripts.map(({ target, world, files }) => ({
-        tabId: target.tabId,
-        world,
-        files,
-      })),
-    ),
-    JSON.stringify([
-      {
-        tabId: 41,
-        world: "MAIN",
-        files: [
-          registeredMainWorldScripts.find(
-            ({ id }) => id === "contentsChatgptMain",
-          )!.js![0],
-        ],
-      },
-      { tabId: 41, world: "ISOLATED", files: ["chatgpt.js"] },
-      {
-        tabId: 42,
-        world: "MAIN",
-        files: [
-          registeredMainWorldScripts.find(
-            ({ id }) => id === "contentsClaudeMain",
-          )!.js![0],
-        ],
-      },
-      { tabId: 42, world: "ISOLATED", files: ["claude.js"] },
-      { tabId: 43, world: "ISOLATED", files: ["google.js"] },
-    ]),
-    "worker startup injects idempotent adapters into already-open provider tabs",
-  );
-
   const listener = messageListeners[0] as (
     request: unknown,
     sender: unknown,
@@ -395,7 +359,7 @@ async function main() {
       )
       .every(
         ({ extensionVersion, adapterVersion }) =>
-          extensionVersion === "1.0.5" && adapterVersion === "1.0.4",
+          extensionVersion === "1.0.6" && adapterVersion === "1.0.5",
       ),
   );
 

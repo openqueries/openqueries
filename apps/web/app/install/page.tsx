@@ -68,9 +68,9 @@ export default function InstallPage() {
           </a>
         </div>
         <span className="install-disclosure">
-          Version 1.0.5 is under Chrome Web Store review. Until Google makes the
-          listing public, the identical open-source package remains available
-          from the GitHub release.
+          Version 1.0.6 is being prepared after the first review identified a
+          fresh-install capture failure. Until Google makes the listing public,
+          verified packages remain available from GitHub releases.
         </span>
       </header>
 

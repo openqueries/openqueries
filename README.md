@@ -35,8 +35,9 @@ the corresponding provider rather than a universal GPT scorer.
 
 ## Capture architecture
 
-ChatGPT and Claude install the same small, document-start observer in the
-provider page's main world. It inspects cloned `fetch`, XHR, SSE,
+ChatGPT and Claude declare the same small observer statically in the extension
+manifest so it runs at `document_start` in the provider page's main world,
+including on a completely fresh extension install. It inspects cloned `fetch`, XHR, SSE,
 `EventSource` and WebSocket response data and accepts only explicit
 search-scoped fields. It does not click provider controls or scan generic chat
 containers. ChatGPT additionally reconciles the active conversation through a
@@ -94,9 +95,12 @@ testing provider calls. Provider keys must never enter source, extension bundles
 or committed files.
 
 The production Chrome package is generated at
-`apps/extension/build/chrome-mv3-prod.zip`. The build gate evaluates the actual
-bundled MV3 service worker and verifies that the toolbar action registers the
-side panel before packaging.
+`apps/extension/build/chrome-mv3-prod.zip`. The build gate validates the final
+manifest and bundled MV3 service worker, then installs that exact build into a
+new temporary Chrome-for-Testing profile. The browser test verifies privacy
+activation, ChatGPT and Claude transport capture, and both records in the
+rendered History view before packaging. It uses a mock keychain and never opens
+the developer's normal Chrome profile.
 
 ## Contributing and security
 

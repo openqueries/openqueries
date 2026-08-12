@@ -1,14 +1,14 @@
 {
   "name": "@openqueries/extension",
   "displayName": "Open Queries – AI Search Query Inspector",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "See ChatGPT, Claude and Google AI search queries in a local side panel, then inspect likely fan-out queries on demand.",
   "author": "Open Queries contributors",
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "build": "plasmo build && tsx tests/build-smoke.ts",
+    "build": "plasmo build && tsx scripts/finalize-manifest.ts && tsx tests/build-smoke.ts && node tests/fresh-install-chrome.test.mjs",
     "dev": "plasmo dev",
-    "package": "plasmo package",
+    "package": "pnpm build && plasmo package",
     "test": "tsx --test tests/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
@@ -33,6 +33,26 @@
   },
   "manifest": {
     "minimum_chrome_version": "114",
+    "content_scripts": [
+      {
+        "matches": [
+          "https://chatgpt.com/*"
+        ],
+        "js": [
+          "../main-world/chatgpt-transport.ts"
+        ],
+        "run_at": "document_start"
+      },
+      {
+        "matches": [
+          "https://claude.ai/*"
+        ],
+        "js": [
+          "../main-world/claude-transport.ts"
+        ],
+        "run_at": "document_start"
+      }
+    ],
     "permissions": [
       "sidePanel",
       "storage"

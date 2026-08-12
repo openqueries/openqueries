@@ -21,5 +21,11 @@ jobs:
         with:
           node-version: 22.13.0
           cache: pnpm
+      - uses: browser-actions/setup-chrome@v2
+        id: setup-chrome
+        with:
+          chrome-version: stable
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+        env:
+          CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
