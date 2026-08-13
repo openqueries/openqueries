@@ -20,6 +20,25 @@ async function availablePort() {
   return port;
 }
 
+async function stopChild(child) {
+  if (child.exitCode !== null || child.signalCode !== null) return;
+
+  const exited = new Promise((resolveExit) => child.once("exit", resolveExit));
+  child.kill("SIGTERM");
+  const stopped = await Promise.race([
+    exited.then(() => true),
+    sleep(5_000).then(() => false),
+  ]);
+
+  if (stopped || child.exitCode !== null || child.signalCode !== null) return;
+
+  const forceExited = new Promise((resolveExit) =>
+    child.once("exit", resolveExit),
+  );
+  child.kill("SIGKILL");
+  await Promise.race([forceExited, sleep(2_000)]);
+}
+
 async function chromeBinary() {
   if (process.env.CHROME_BIN) return process.env.CHROME_BIN;
   if (process.platform === "darwin") {
@@ -416,7 +435,6 @@ try {
     `Fresh Chrome install ${extensionId} captured ChatGPT and Claude, displayed History, and followed both Current tab contexts.`,
   );
 } finally {
-  chrome.kill("SIGTERM");
-  await new Promise((resolveExit) => chrome.once("exit", resolveExit));
+  await stopChild(chrome);
   await rm(profileDirectory, { recursive: true, force: true });
 }
