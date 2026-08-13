@@ -265,13 +265,16 @@ const chromeArguments = [
   `--load-extension=${buildDirectory}`,
   "about:blank",
 ];
-const chrome = spawn(
-  process.platform === "linux" ? "xvfb-run" : chromeExecutable,
-  process.platform === "linux"
-    ? ["-a", chromeExecutable, ...chromeArguments]
-    : chromeArguments,
-  { stdio: ["ignore", "ignore", "pipe"] },
-);
+if (process.platform === "linux") {
+  chromeArguments.unshift(
+    "--headless=new",
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+  );
+}
+const chrome = spawn(chromeExecutable, chromeArguments, {
+  stdio: ["ignore", "ignore", "pipe"],
+});
 
 let chromeError = "";
 chrome.stderr.setEncoding("utf8");
@@ -280,10 +283,14 @@ chrome.stderr.on("data", (chunk) => {
 });
 
 try {
-  await eventually(async () => {
-    const version = await json(port, "/json/version");
-    return version.Browser;
-  }, `Fresh Chrome did not start: ${chromeError}`);
+  await eventually(
+    async () => {
+      const version = await json(port, "/json/version");
+      return version.Browser;
+    },
+    `Fresh Chrome did not start (exit=${chrome.exitCode}, signal=${chrome.signalCode}): ${chromeError}`,
+    300,
+  );
 
   const installedExtension = await eventually(
     async () => findOpenQueriesRuntime(port),
