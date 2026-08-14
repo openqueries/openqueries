@@ -7,13 +7,13 @@ import { topicPages } from "@/lib/topics";
 const staticPages = [
   {
     path: "/",
-    updatedAt: "2026-08-10",
+    updatedAt: "2026-08-14",
     changeFrequency: "weekly",
     priority: 1,
   },
   {
     path: "/install",
-    updatedAt: "2026-08-10",
+    updatedAt: "2026-08-14",
     changeFrequency: "monthly",
     priority: 0.9,
   },
