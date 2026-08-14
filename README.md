@@ -2,7 +2,7 @@
 
 [![Latest release](https://img.shields.io/github/v/release/openqueries/openqueries?display_name=tag&sort=semver)](https://github.com/openqueries/openqueries/releases/latest)
 
-[Website](https://openqueries.org) · [Chrome Web Store](https://chromewebstore.google.com/detail/ieglcpgkjnieapajeldfhkjpllkcamkl) · [Methodology](https://openqueries.org/methodology) · [Privacy](https://openqueries.org/privacy)
+[Website](https://openqueries.org) · [Chrome Web Store](https://chromewebstore.google.com/detail/open-queries-%E2%80%93-ai-search/ieglcpgkjnieapajeldfhkjpllkcamkl) · [Methodology](https://openqueries.org/methodology) · [Privacy](https://openqueries.org/privacy)
 
 **See the queries behind AI search.**
 

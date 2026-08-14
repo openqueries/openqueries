@@ -104,6 +104,8 @@ export default function HomePage() {
           operatingSystem: "Chrome",
           description: DEFAULT_DESCRIPTION,
           url: absoluteUrl("/"),
+          installUrl: CHROME_WEB_STORE_URL,
+          isAccessibleForFree: true,
           license: "https://www.gnu.org/licenses/agpl-3.0.html",
           sameAs: [
             GITHUB_URL,
@@ -125,10 +127,16 @@ export default function HomePage() {
             accept the privacy setting.
           </p>
           <div className="hero-actions">
-            <Link className="button primary" href="/install">
+            <a
+              aria-label="Add Open Queries to Chrome"
+              className="button primary"
+              href={CHROME_WEB_STORE_URL}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
               <BrandIcon icon={siGooglechrome} size={17} />
-              Get the extension
-            </Link>
+              Add to Chrome
+            </a>
             <a
               className="button secondary"
               href="https://github.com/openqueries/openqueries"
@@ -270,10 +278,16 @@ export default function HomePage() {
           <h2>Build the query history AI search is missing.</h2>
           <p>Install, accept privacy and inspect. Every layer stays open.</p>
         </div>
-        <Link className="button light" href="/install">
+        <a
+          aria-label="Add Open Queries to Chrome"
+          className="button light"
+          href={CHROME_WEB_STORE_URL}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
           <BrandIcon icon={siGooglechrome} size={17} />
-          Get Open Queries
-        </Link>
+          Add to Chrome
+        </a>
       </section>
     </SiteShell>
   );

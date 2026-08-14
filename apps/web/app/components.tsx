@@ -63,10 +63,16 @@ export function SiteShell({ children }: { children: ReactNode }) {
             >
               <BrandIcon icon={siGithub} size={17} />
             </a>
-            <Link className="nav-cta" href="/install">
+            <a
+              aria-label="Add Open Queries to Chrome"
+              className="nav-cta"
+              href={CHROME_WEB_STORE_URL}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
               <BrandIcon icon={siGooglechrome} size={15} />
-              Get extension
-            </Link>
+              Add to Chrome
+            </a>
           </nav>
         </div>
       </header>
@@ -86,7 +92,13 @@ export function SiteShell({ children }: { children: ReactNode }) {
           <Link href="/support">Support</Link>
           <Link href="/security">Security</Link>
           <Link href="/open-source">Open source</Link>
-          <a href={CHROME_WEB_STORE_URL}>Chrome Web Store</a>
+          <a
+            href={CHROME_WEB_STORE_URL}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Chrome Web Store
+          </a>
           <a href="https://github.com/openqueries/openqueries">GitHub</a>
         </div>
         <p className="footer-note">

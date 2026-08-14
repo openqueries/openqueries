@@ -46,8 +46,18 @@ test("links every authority article and provider pillar from homepage SSR", () =
 });
 
 test("connects demand-led topic pages to the install funnel", () => {
-  assert.match(read("app/components.tsx"), /href="\/ai-search-visibility"/u);
-  assert.match(read("app/components.tsx"), /href="\/ai-search-optimization"/u);
+  const components = read("app/components.tsx");
+  const home = read("app/page.tsx");
+  const install = read("app/install/page.tsx");
+
+  assert.match(components, /href="\/ai-search-visibility"/u);
+  assert.match(components, /href="\/ai-search-optimization"/u);
+  assert.match(components, /href=\{CHROME_WEB_STORE_URL\}/u);
+  assert.match(home, /installUrl: CHROME_WEB_STORE_URL/u);
+  assert.match(home, /href=\{CHROME_WEB_STORE_URL\}/u);
+  assert.match(install, /Available on the Chrome Web Store/u);
+  assert.match(install, /href=\{CHROME_WEB_STORE_URL\}/u);
+  assert.doesNotMatch(install, /Until Google makes the listing public/u);
   assert.match(read("lib/topics.ts"), /label: "Install Open Queries"/u);
   assert.match(read("lib/topics.ts"), /label: "Inspect queries in Chrome"/u);
 });
@@ -108,7 +118,7 @@ test("ships stable SEO, methodology and legal surfaces", () => {
   assert.match(read("app/layout.tsx"), /metadataBase/u);
   assert.match(
     read("lib/site.ts"),
-    /chromewebstore\.google\.com\/detail\/ieglcpgkjnieapajeldfhkjpllkcamkl/u,
+    /chromewebstore\.google\.com\/detail\/open-queries-%E2%80%93-ai-search\/ieglcpgkjnieapajeldfhkjpllkcamkl/u,
   );
   assert.match(read("wrangler.jsonc"), /ieglcpgkjnieapajeldfhkjpllkcamkl/u);
 });

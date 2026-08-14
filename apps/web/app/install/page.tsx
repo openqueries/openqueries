@@ -17,7 +17,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/install",
   title: "AI Search Extension for ChatGPT, Claude & Google AI",
   description:
-    "Install the open-source Open Queries AI search extension for ChatGPT, Claude and Google AI Overviews, or preview the release on GitHub.",
+    "Add the open-source Open Queries extension to Chrome and inspect AI search queries surfaced by ChatGPT, Claude and Google AI Overviews.",
 });
 
 export default function InstallPage() {
@@ -48,7 +48,7 @@ export default function InstallPage() {
           items={[{ href: "/", label: "Home" }, { label: "Install" }]}
         />
         <p className="status-label">
-          <i /> Chrome Web Store
+          <i /> Available on the Chrome Web Store
         </p>
         <h1>Install the Open Queries AI search extension.</h1>
         <p>
@@ -58,19 +58,24 @@ export default function InstallPage() {
           separate from on-demand fan-out estimates.
         </p>
         <div className="hero-actions">
-          <a className="button primary" href={CHROME_WEB_STORE_URL}>
+          <a
+            aria-label="Add Open Queries to Chrome from the Chrome Web Store"
+            className="button primary"
+            href={CHROME_WEB_STORE_URL}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
             <BrandIcon icon={siGooglechrome} size={17} />
             Add to Chrome
           </a>
-          <a className="button secondary" href={`${GITHUB_URL}/releases`}>
+          <a className="button secondary" href={GITHUB_URL}>
             <BrandIcon icon={siGithub} size={17} />
-            Download release
+            View source
           </a>
         </div>
         <span className="install-disclosure">
-          Version 1.0.6 is being prepared after the first review identified a
-          fresh-install capture failure. Until Google makes the listing public,
-          verified packages remain available from GitHub releases.
+          Published on the Chrome Web Store · Version 1.0.6 · Free and open
+          source under AGPL-3.0-or-later
         </span>
       </header>
 

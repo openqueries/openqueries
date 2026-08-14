@@ -8,7 +8,7 @@ export const DEFAULT_DESCRIPTION =
 export const GITHUB_URL = "https://github.com/openqueries/openqueries";
 export const CHROME_WEB_STORE_URL =
   process.env.NEXT_PUBLIC_CHROME_WEB_STORE_URL ||
-  "https://chromewebstore.google.com/detail/ieglcpgkjnieapajeldfhkjpllkcamkl";
+  "https://chromewebstore.google.com/detail/open-queries-%E2%80%93-ai-search/ieglcpgkjnieapajeldfhkjpllkcamkl";
 
 export function absoluteUrl(path: string): string {
   return new URL(path, SITE_ORIGIN).toString();
