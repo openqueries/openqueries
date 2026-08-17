@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { SiteShell } from "../components";
+import { Breadcrumbs } from "../content-components";
+import { StructuredData } from "../structured-data";
 import { learnArticles } from "@/lib/learn";
-import { pageMetadata } from "@/lib/site";
+import { absoluteUrl, pageMetadata } from "@/lib/site";
 import { topicPages } from "@/lib/topics";
 
 export const metadata: Metadata = pageMetadata({
@@ -16,7 +18,52 @@ export const metadata: Metadata = pageMetadata({
 export default function LearnPage() {
   return (
     <SiteShell>
+      <StructuredData
+        value={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Open Queries AI search guides",
+          description:
+            "Practical guides to AI search queries, fan-out retrieval, AEO and GEO evidence.",
+          url: absoluteUrl("/learn"),
+          mainEntityOfPage: absoluteUrl("/learn"),
+          isPartOf: {
+            "@type": "WebSite",
+            name: "Open Queries",
+            url: absoluteUrl("/"),
+          },
+          hasPart: learnArticles.map((article) => ({
+            "@type": "Article",
+            name: article.title,
+            url: absoluteUrl(`/learn/${article.slug}`),
+          })),
+          inLanguage: "en",
+        }}
+      />
+      <StructuredData
+        value={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: absoluteUrl("/"),
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Learn",
+              item: absoluteUrl("/learn"),
+            },
+          ],
+        }}
+      />
       <header className="editorial-hero container">
+        <Breadcrumbs
+          items={[{ href: "/", label: "Home" }, { label: "Learn" }]}
+        />
         <p className="eyebrow">Open guides</p>
         <h1>Understand the retrieval layer.</h1>
         <p>

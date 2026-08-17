@@ -65,6 +65,8 @@ test("connects demand-led topic pages to the install funnel", () => {
 test("publishes complete content layouts and structured data", () => {
   const topic = read("app/[topic]/page.tsx");
   const article = read("app/learn/[slug]/page.tsx");
+  const learnHub = read("app/learn/page.tsx");
+  const methodology = read("app/methodology/page.tsx");
   const components = read("app/content-components.tsx");
 
   for (const source of [topic, article]) {
@@ -82,6 +84,13 @@ test("publishes complete content layouts and structured data", () => {
   assert.match(components, /className="evidence-table"/u);
   assert.match(components, /className="content-callout"/u);
   assert.match(read("app/install/page.tsx"), /AI search extension/u);
+  assert.match(learnHub, /CollectionPage/u);
+  assert.match(learnHub, /BreadcrumbList/u);
+  assert.match(learnHub, /hasPart/u);
+  assert.match(methodology, /TechArticle/u);
+  assert.match(methodology, /BreadcrumbList/u);
+  assert.match(methodology, /datePublished/u);
+  assert.match(methodology, /dateModified/u);
 });
 
 test("ships stable SEO, methodology and legal surfaces", () => {

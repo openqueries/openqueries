@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { EditorialPage } from "../components";
+import { Breadcrumbs } from "../content-components";
 import { DisplayMath, InlineMath } from "../math";
-import { pageMetadata } from "@/lib/site";
+import { StructuredData } from "../structured-data";
+import { absoluteUrl, pageMetadata } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
   path: "/methodology",
@@ -18,7 +20,58 @@ export default function MethodologyPage() {
       eyebrow="Methodology · fanout-v2.1.0"
       title="Measure what the provider actually exposes."
       intro="Open Queries separates direct UI observations from probabilistic reconstructions. It never routes every provider through one GPT ranker. A score is not search volume."
+      breadcrumbs={
+        <Breadcrumbs
+          items={[{ href: "/", label: "Home" }, { label: "Methodology" }]}
+        />
+      }
     >
+      <StructuredData
+        value={{
+          "@context": "https://schema.org",
+          "@type": "TechArticle",
+          headline: "Open Queries observation and fan-out methodology",
+          description:
+            "The provider-native statistical method Open Queries uses to observe and estimate AI search fan-out queries.",
+          url: absoluteUrl("/methodology"),
+          mainEntityOfPage: absoluteUrl("/methodology"),
+          datePublished: "2026-08-09",
+          dateModified: "2026-08-11",
+          isPartOf: {
+            "@type": "WebSite",
+            name: "Open Queries",
+            url: absoluteUrl("/"),
+          },
+          about: [
+            { "@type": "Thing", name: "AI search queries" },
+            { "@type": "Thing", name: "Fan-out query estimation" },
+            { "@type": "Thing", name: "Provider-native scoring" },
+          ],
+          author: { "@type": "Organization", name: "Open Queries" },
+          publisher: { "@type": "Organization", name: "Open Queries" },
+          inLanguage: "en",
+        }}
+      />
+      <StructuredData
+        value={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: absoluteUrl("/"),
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Methodology",
+              item: absoluteUrl("/methodology"),
+            },
+          ],
+        }}
+      />
       <section>
         <h2>1. Observation boundary</h2>
         <p>
