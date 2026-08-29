@@ -241,6 +241,21 @@ test("source and claim guardrails remain explicit", () => {
     `${history.directAnswer} ${sectionText(history.sections)}`,
     /not (?:a copy of )?chat history|never uses the phrase to imply access to chat history/iu,
   );
+  assert.match(history.directAnswer, /not public by default/iu);
+  assert.ok(
+    history.sections.some(
+      (section) =>
+        section.id === "is-chatgpt-history-public" &&
+        section.table?.rows.length === 3,
+    ),
+  );
+  assert.ok(
+    history.sources.some(
+      (source) =>
+        source.url ===
+        "https://help.openai.com/en/articles/7925741-chatgpt-shared-links-faq",
+    ),
+  );
 
   const allText = [...topicPages, ...learnArticles]
     .map((page) => `${page.directAnswer} ${sectionText(page.sections)}`)

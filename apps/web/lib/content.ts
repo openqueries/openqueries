@@ -73,6 +73,14 @@ export const PRIMARY_SOURCES = {
     supports:
       "OpenAI's description of query rewriting, additional targeted searches, citations and OAI-SearchBot eligibility.",
   },
+  openAiSharedLinks: {
+    label: "ChatGPT shared links",
+    publisher: "OpenAI Help Center",
+    url: "https://help.openai.com/en/articles/7925741-chatgpt-shared-links-faq",
+    accessedAt: "2026-08-29",
+    supports:
+      "OpenAI's distinction between private account history and deliberately shared conversation links, including who can open personal and managed-workspace links.",
+  },
   anthropicWebSearch: {
     label: "Web search tool",
     publisher: "Claude Platform Docs",

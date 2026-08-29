@@ -162,9 +162,9 @@ const topicPageDrafts: TopicPageDraft[] = [
       "Understand the difference between ChatGPT chat history and a local, privacy-bounded trace of web-search queries surfaced during retrieval.",
     eyebrow: "Clear terminology",
     directAnswer:
-      "A ChatGPT search history is a record of web-search queries surfaced while ChatGPT retrieves sources. It is not a copy of chat history: Open Queries does not read prompts, responses, titles, account identity or conversation URLs.",
+      "ChatGPT history is not public by default. Other people can view a conversation only when it is deliberately shared with them, subject to the link and workspace controls. Open Queries keeps a separate, local trace of surfaced web-search queries; it does not read prompts, responses, titles, account identity or conversation URLs.",
     publishedAt: CONTENT_PUBLISHED_AT,
-    updatedAt: CONTENT_UPDATED_AT,
+    updatedAt: "2026-08-29",
     schemaType: "TechArticle",
     about: ["ChatGPT search history", "browser privacy", "AI search queries"],
     provider: "chatgpt",
@@ -177,6 +177,36 @@ const topicPageDrafts: TopicPageDraft[] = [
           "Chat history preserves a conversation. Search history, in the narrow Open Queries sense, preserves only eligible web-search strings that the provider exposes during retrieval.",
           "The distinction is structural rather than cosmetic: the event schema has no fields for message text, conversation titles, account identity or conversation URLs.",
         ],
+      },
+      {
+        id: "is-chatgpt-history-public",
+        heading: "Is ChatGPT search history public?",
+        paragraphs: [
+          "No. ChatGPT conversation history is tied to the account or workspace and is not publicly browsable by default. A conversation becomes visible to someone else only when the user deliberately creates or sends a shared link, or shares it through an eligible managed workspace. OpenAI says a personal-account link can be opened by anyone who has that link, while managed-workspace links remain subject to workspace access rules.",
+          "Open Queries creates a different record: a 30-day browser-local trace of eligible web-search strings surfaced during retrieval. That trace is not a public profile or a copy of the user's chats. Optional query contribution is off by default and sends only the minimized query-event fields described in the privacy policy, never surrounding conversation content.",
+        ],
+        table: {
+          headers: ["Record", "Default visibility", "What changes access"],
+          rows: [
+            [
+              "ChatGPT conversation history",
+              "The signed-in user or permitted workspace members",
+              "The user deliberately creates a shared link or shares within an eligible workspace",
+            ],
+            [
+              "Personal-account shared link",
+              "Anyone who receives the link can open the shared snapshot",
+              "The creator updates or deletes the shared link",
+            ],
+            [
+              "Open Queries web-search trace",
+              "The local Chrome profile",
+              "The user separately enables minimized query contribution; chat content remains excluded",
+            ],
+          ],
+        },
+        callout:
+          "Private by default does not mean a shared link is private. Review the shared preview and audience before sending a conversation link.",
       },
       {
         id: "stored-fields",
@@ -254,6 +284,7 @@ const topicPageDrafts: TopicPageDraft[] = [
     ],
     sources: [
       PRIMARY_SOURCES.openAiChatGptSearch,
+      PRIMARY_SOURCES.openAiSharedLinks,
       PRIMARY_SOURCES.openQueriesArchitecture,
       PRIMARY_SOURCES.openQueriesPrivacy,
     ],
