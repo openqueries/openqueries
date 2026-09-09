@@ -36,12 +36,12 @@ const topicPageDrafts: TopicPageDraft[] = [
     slug: "chatgpt-search-queries",
     title: "ChatGPT search queries",
     description:
-      "See the web-search queries ChatGPT surfaces, separate observed searches from estimates and turn retrieval evidence into useful content decisions.",
+      "Inspect the search queries ChatGPT runs, trace source retrieval and separate observed searches from estimated fan-out with the Open Queries extension.",
     eyebrow: "Supported surface · ChatGPT search",
     directAnswer:
       "ChatGPT search queries are targeted web searches created when ChatGPT uses search to answer a request. Open Queries records only explicit search-tool query metadata exposed by the supported interface, never the prompt or conversation text, and labels any later fan-out reconstruction as an estimate.",
     publishedAt: CONTENT_PUBLISHED_AT,
-    updatedAt: CONTENT_UPDATED_AT,
+    updatedAt: "2026-09-09",
     schemaType: "TechArticle",
     about: ["ChatGPT search", "AI search queries", "query fan-out"],
     provider: "chatgpt",

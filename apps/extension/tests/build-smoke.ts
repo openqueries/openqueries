@@ -97,6 +97,8 @@ async function main() {
   const selectedEventId = "selected-for-expansion";
   const unselectedEventId = "unselected-observation";
   const formerlyBlockedEventId = "observation-containing-email";
+  const testCapturedAt = (offsetMs: number) =>
+    new Date(Date.now() + offsetMs).toISOString();
   const stateKey = "openqueries:state:v1";
   const stored: Record<string, unknown> = {
     [stateKey]: {
@@ -111,7 +113,7 @@ async function main() {
           platform: "chatgpt",
           sourceKind: "observed_model_search",
           query: "site:example.org evidence",
-          capturedAt: "2026-08-09T12:00:00.000Z",
+          capturedAt: testCapturedAt(0),
           extensionVersion: "1.0.1",
           adapterVersion: "1.0.1",
           tabId: 1,
@@ -279,7 +281,18 @@ async function main() {
     privacyAccepted?: boolean;
   };
   assert.equal(publicState.privacyAccepted, true);
-  releaseHistoricalTransfer?.();
+  for (
+    let attempt = 0;
+    attempt < 20 && !releaseHistoricalTransfer;
+    attempt += 1
+  ) {
+    await new Promise((settled) => setTimeout(settled, 0));
+  }
+  assert.ok(
+    releaseHistoricalTransfer,
+    "accepting privacy starts the historical transfer asynchronously",
+  );
+  releaseHistoricalTransfer();
   await new Promise((settled) => setTimeout(settled, 0));
   assert.equal(
     fetchCalls.filter(({ url }) => url.endsWith("/api/v1/events")).length,
@@ -293,21 +306,21 @@ async function main() {
       platform: "claude",
       sourceKind: "observed_model_search",
       query: "unselected observed query",
-      capturedAt: "2026-08-09T12:01:00.000Z",
+      capturedAt: testCapturedAt(60_000),
     },
     {
       eventId: selectedEventId,
       platform: "chatgpt",
       sourceKind: "observed_model_search",
       query: "site:example.org selected evidence",
-      capturedAt: "2026-08-09T12:02:00.000Z",
+      capturedAt: testCapturedAt(120_000),
     },
     {
       eventId: formerlyBlockedEventId,
       platform: "chatgpt",
       sourceKind: "observed_model_search",
       query: "site:example.org contact jane@example.com",
-      capturedAt: "2026-08-09T12:03:00.000Z",
+      capturedAt: testCapturedAt(180_000),
     },
   ]) {
     const observationResponse = await send(
