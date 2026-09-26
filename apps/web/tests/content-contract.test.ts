@@ -114,6 +114,19 @@ test("keeps one unique canonical for every approved intent", () => {
   ]);
 });
 
+test("keeps the ChatGPT query snippet specific and benefit-led", () => {
+  const topic = topicPages.find(
+    ({ slug }) => slug === "chatgpt-search-queries",
+  );
+
+  assert.ok(topic);
+  assert.match(topic.title, /^ChatGPT Search Queries:/u);
+  assert.match(topic.title, /See What ChatGPT Searches/u);
+  assert.match(topic.description, /observed query events/u);
+  assert.match(topic.description, /estimated fan-out separately/u);
+  assert.ok(topic.description.length <= 160);
+});
+
 test("every pillar meets the evidence and internal-link contract", () => {
   for (const topic of topicPages) {
     assert.ok(topic.directAnswer.length >= 100, topic.slug);

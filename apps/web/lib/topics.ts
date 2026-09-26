@@ -34,14 +34,14 @@ type TopicPageDraft = Omit<TopicPage, "keyTakeaways" | "readMinutes">;
 const topicPageDrafts: TopicPageDraft[] = [
   {
     slug: "chatgpt-search-queries",
-    title: "ChatGPT search queries",
+    title: "ChatGPT Search Queries: See What ChatGPT Searches",
     description:
-      "Inspect the search queries ChatGPT runs, trace source retrieval and separate observed searches from estimated fan-out with the Open Queries extension.",
+      "See the web searches ChatGPT generates while researching an answer. Open Queries captures observed query events and labels estimated fan-out separately.",
     eyebrow: "Supported surface · ChatGPT search",
     directAnswer:
       "ChatGPT search queries are targeted web searches created when ChatGPT uses search to answer a request. Open Queries records only explicit search-tool query metadata exposed by the supported interface, never the prompt or conversation text, and labels any later fan-out reconstruction as an estimate.",
     publishedAt: CONTENT_PUBLISHED_AT,
-    updatedAt: "2026-09-09",
+    updatedAt: "2026-09-26",
     schemaType: "TechArticle",
     about: ["ChatGPT search", "AI search queries", "query fan-out"],
     provider: "chatgpt",
