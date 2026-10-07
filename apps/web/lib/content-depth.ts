@@ -1188,12 +1188,13 @@ export const learnDepthBySlug: Record<string, ContentDepth> = {
     ],
   },
   "estimating-fan-out-queries-with-log-probabilities": {
-    readMinutes: 18,
+    readMinutes: 20,
     keyTakeaways: [
       "The estimator targets plausible adjacent queries under a fixed provider experiment—not a reconstruction of hidden production retrieval.",
       "When native output-token log probabilities exist, token-average log likelihood yields within-run inverse-perplexity evidence.",
       "When they do not, repeated provider-native samples estimate inclusion frequency with a Wilson interval.",
       "UTF-8 byte alignment, failure thresholds, method versioning and strict separation from observations make the proxy auditable.",
+      "Open Queries can run this experiment as a request-only query fan-out generator, while keeping its output separate from observed searches.",
     ],
     paragraphAdditions: {
       estimand: [
@@ -1226,6 +1227,38 @@ export const learnDepthBySlug: Record<string, ContentDepth> = {
       ],
     },
     extraSections: [
+      {
+        id: "query-fan-out-generator-workflow",
+        heading: "How to use the query fan-out generator",
+        paragraphs: [
+          "Open Queries includes a request-only query fan-out generator for research. It starts from one web-search query surfaced beside a supported ChatGPT, Claude or Google answer and returns exactly 12 plausible adjacent searches from the selected provider experiment. It does not run automatically, inspect an entire account or claim that the production assistant issued the generated strings.",
+          "The useful output is a ranked hypothesis set with its evidence attached. Keep the observed seed separate, retain the provider and method metadata, and validate promising candidates against independent search demand and primary sources before changing a content brief.",
+        ],
+        steps: [
+          {
+            title: "Capture an observed seed",
+            text: "Open a supported AI-search answer and select a web-search query that the interface actually exposed.",
+          },
+          {
+            title: "Request the estimate",
+            text: "After accepting the privacy boundary, run the generator explicitly for that seed and provider; no conversation transcript is required.",
+          },
+          {
+            title: "Read the evidence label",
+            text: "Use native token likelihood when it is available, or repeated-sample inclusion frequency and its Wilson interval when it is not.",
+          },
+          {
+            title: "Cluster by information need",
+            text: "Group useful candidates into definitions, comparisons, constraints, current facts and source needs instead of publishing one page per phrase.",
+          },
+          {
+            title: "Validate before publishing",
+            text: "Confirm demand separately, find authoritative evidence and strengthen the one canonical page that already owns the intent.",
+          },
+        ],
+        callout:
+          "Generated fan-out queries are hypotheses from a documented experiment. Only queries exposed by a supported interface belong in the observed-query record.",
+      },
       {
         id: "worked-logprob-example",
         heading: "Worked example: score one candidate without overstating it",

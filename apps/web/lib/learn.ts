@@ -365,7 +365,7 @@ const learnArticleDrafts: LearnArticleDraft[] = [
     directAnswer:
       "Open Queries estimates plausible fan-out queries with evidence from the same provider that generates them. When native output-token log probabilities are available, it ranks candidates by token-average likelihood; otherwise it uses repeated provider-native samples and reports inclusion frequency with a Wilson interval.",
     publishedAt: CONTENT_PUBLISHED_AT,
-    updatedAt: CONTENT_UPDATED_AT,
+    updatedAt: "2026-10-07",
     readMinutes: 15,
     about: [
       "fan-out estimation",
